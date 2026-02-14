@@ -1,0 +1,8 @@
+Type
+"
+git add .
+git commit -m "Added login system"
+git push
+"
+
+After every whatever in Cmd
