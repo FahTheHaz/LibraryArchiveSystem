@@ -18,7 +18,7 @@
 
 // ─── Configuration ───────────────────────────────────────────────────────────
 
-$baseUrl       = "http://localhost/las/backend/api";
+$baseUrl       = "http://localhost/las/backend/api/accounts";
 $validUsername = "admin";          // ← change to a real account username
 $validPassword = "admin123";    // ← change to the matching plaintext password
 $cookieJar     = tempnam(sys_get_temp_dir(), "las_auth_test_");
@@ -221,7 +221,7 @@ $res = sendGet("{$baseUrl}/logout.php");
 printResult("B4: GET request to logout.php (expect 405)", $res, 405);
 
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// 
 // ACTIVITY LOG VERIFICATION
 // ═══════════════════════════════════════════════════════════════════════════════
 

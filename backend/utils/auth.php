@@ -7,6 +7,14 @@
  * Usage:
  *   require_once __DIR__ . '/../utils/auth.php';
  *   // $currentUserID and $currentRoleID are available after this point
+ * how to use:
+ * * For endpoints that require authentication, include this file at the top. It will:
+ *  - Start a session (if not already started)
+ * - Check if the user is logged in by verifying if `$_SESSION['userID']` is set
+ * - If not logged in, it will return a 401 Unauthorized response and exit
+ * - If logged in, it will set `$currentUserID` and `$currentRoleID
+ * for use in the endpoint logic
+ * 
  *
  * To restrict to admins only:
  *   if ($currentRoleID !== 1) {
@@ -14,6 +22,13 @@
  *       echo json_encode(["error" => "Admins only."]);
  *       exit();
  *   }
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
  */
 
 session_set_cookie_params([

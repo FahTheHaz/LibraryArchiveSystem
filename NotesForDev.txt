@@ -6,3 +6,5 @@ git push
 "
 
 After every whatever in Cmd
+
+Add "FullName?"
