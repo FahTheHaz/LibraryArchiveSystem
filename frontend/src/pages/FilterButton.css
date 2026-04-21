@@ -1,0 +1,26 @@
+.filter-panel {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 6px);
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  min-width: 200px;
+}
+
+.category-dropdown {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 4px);
+  left: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 4px 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  min-width: 160px;
+  overflow: hidden;
+}

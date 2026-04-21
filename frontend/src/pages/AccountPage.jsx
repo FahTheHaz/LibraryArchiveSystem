@@ -63,9 +63,9 @@ export default function AccountPage() {
         <h1 className="text-2xl font-bold text-gray-800 mb-6">Account Settings</h1>
 
         {loading ? (
-          <p className="text-gray-400 text-sm">Loading...</p>
+          <p className="text-gray-400 text-sm">Loading Account Information...</p>
         ) : (
-          <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow p-6 space-y-4">
+          <form onSubmit={handleSubmit} className="bg-white rounded-xl space-y-4">
             {status && (
               <p className={`text-sm rounded p-2 ${status.type === "success" ? "text-green-700 bg-green-50" : "text-red-600 bg-red-50"}`}>
                 {status.message}
