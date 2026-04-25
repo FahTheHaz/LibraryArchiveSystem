@@ -21,27 +21,35 @@ export default function AccountPage() {
       setLoading(false);
     });
   }, []);
+  // What does the empty "[]" do? It makes it run only once on page load. Otherwise it would run every time the form changes,
+  // which would be bad, i think
 
   function handleChange(e) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setStatus(null);
   }
+  // Updates the form state whenever an input field changes. It also resets any status messages.
 
   async function handleSubmit(e) {
+    // Handles form submission to update account info. Checks for changes, sends the update request, and shows success/error messages.
     e.preventDefault();
     setSaving(true);
     setStatus(null);
 
     const payload = {};
     if (form.username !== original.username) payload.username = form.username;
-    if (form.email    !== original.email)    payload.email    = form.email;
-    if (form.password.trim())                payload.password = form.password;
+    if (form.email    !== original.email) payload.email    = form.email;
+    if (form.password.trim()) payload.password = form.password;
+    // from the form, we only want to send the fields that have changed. 
+    // the filled ones will be included.
+    // Because why not
 
     if (!Object.keys(payload).length) {
       setStatus({ type: "error", message: "No changes to save." });
       setSaving(false);
       return;
     }
+    // When empty
 
     const { ok, data } = await updateAccount(payload);
     setSaving(false);
@@ -53,6 +61,7 @@ export default function AccountPage() {
     } else {
       setStatus({ type: "error", message: data.error || "Update failed." });
     }
+    // Show message if ok or not
   }
 
   return (

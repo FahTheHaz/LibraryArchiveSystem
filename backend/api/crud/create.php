@@ -215,7 +215,7 @@ try {
     // $logStmt->bind_param("isss", $uploadedBy, $ipBinary, $actionType, $description);
     // $logStmt->execute();
     // $logStmt->close();
-    require_once __DIR__ . '/../utils/logActivity.php';
+    require_once __DIR__ . '/../../utils/logActivity.php';
     logActivity($conn, $uploadedBy, "UPLOAD", "Uploaded {$fileType}: {$originalName}");
     
     

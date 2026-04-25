@@ -19,6 +19,7 @@ export default function LoginPage() {
     const { ok, data } = await login(form.username, form.password);
     setLoading(false);
     if (ok) {
+      localStorage.setItem("las_role", String(data.roleID));
       navigate("/browse");
     } else {
       setError(data.error || "Login failed.");

@@ -74,7 +74,7 @@ session_start();
 
 
 // Optional: who is performing the update (for activity logging)
-require_once __DIR__ . '/../utils/logActivity.php';
+require_once __DIR__ . '/../../utils/logActivity.php';
 $userID = $_SESSION['userID'] ?? null; // For logging purposes, if we have session info available
 $updatedBy = isset($data['updatedBy']) ? intval($data['updatedBy']) : null;
 
@@ -255,7 +255,7 @@ try {
     // $logStmt->execute();
     // $logStmt->close();
 
-    require_once __DIR__ . '/../utils/logActivity.php';
+    require_once __DIR__ . '/../../utils/logActivity.php';
     logActivity($conn, $updatedBy, "UPDATE", "Updated FileID {$fileID}: " . implode(", ", $updatedFields));
     
 

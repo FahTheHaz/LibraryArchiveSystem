@@ -30,7 +30,7 @@ $dbuser = "root";
 $dbpass = "";
 
 $conn = new mysqli($host, $dbuser, $dbpass, $dbname);
-require_once __DIR__ . '/../utils/logActivity.php';
+require_once __DIR__ . '/../../utils/logActivity.php';
 
 
 if ($conn->connect_error) {

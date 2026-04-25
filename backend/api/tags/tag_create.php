@@ -40,8 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // ─── Auth Guard ───────────────────────────────────────────────────────────────
-require_once __DIR__ . '/../utils/auth.php';   // sets $currentUserID, $currentRoleID
-require_once __DIR__ . '/../utils/logActivity.php';
+require_once __DIR__ . '/../../utils/auth.php';   // sets $currentUserID, $currentRoleID
+require_once __DIR__ . '/../../utils/logActivity.php';
 
 // ─── DB Connection ────────────────────────────────────────────────────────────
 $conn = new mysqli("localhost", "root", "", "las_db");

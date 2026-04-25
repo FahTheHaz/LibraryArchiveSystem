@@ -8,3 +8,5 @@ createRoot(document.getElementById('root')).render(
     <App />
   </StrictMode>,
 )
+// TODO: Smaller png of logo and shit.
+// How to just rip off the heads of my enemies
