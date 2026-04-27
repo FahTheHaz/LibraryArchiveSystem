@@ -4,6 +4,14 @@
  * GET  — return current user data for pre-filling the form
  * POST — validate + update only the provided fields
  * POST fields: username, email, password (all optional, only sent if changed)
+ * 
+ * Responses: 
+ * - 200 + { success: true, message: "Account updated." }
+ * - 400 Bad Request (invalid JSON, no fields to update)
+ * - 422 Unprocessable Entity (validation errors)
+ * - 409 Conflict (username/email already taken)
+ * - 500 Internal Server Error (DB errors)
+ * 
  */
 
 header("Access-Control-Allow-Origin: http://localhost:5173");

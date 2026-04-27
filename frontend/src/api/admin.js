@@ -1,9 +1,11 @@
 const BASE = "http://localhost/LAS/backend/api/admin";
 
-export async function getUsers() {
-  const res = await fetch(`${BASE}/users.php`, { credentials: "include" });
+export async function getUsers(role) {
+  const res = await fetch(`${BASE}/users.php?role=${role}`, { credentials: "include" });
   return { ok: res.ok, status: res.status, data: await res.json() };
+
 }
+
 // getUsers fetches the list of users from the backend. It returns an object with:
 // - ok: whether the HTTP response status is in the 200-299 range
 // - status: the actual HTTP status code (e.g. 200, 401, 403)

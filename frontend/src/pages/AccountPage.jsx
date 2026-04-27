@@ -20,7 +20,7 @@ export default function AccountPage() {
       }
       setLoading(false);
     });
-  }, []);
+  }, [navigate]);
   // What does the empty "[]" do? It makes it run only once on page load. Otherwise it would run every time the form changes,
   // which would be bad, i think
 
@@ -32,37 +32,62 @@ export default function AccountPage() {
 
   async function handleSubmit(e) {
     // Handles form submission to update account info. Checks for changes, sends the update request, and shows success/error messages.
+
+
     e.preventDefault();
     setSaving(true);
-    setStatus(null);
+    setStatus({ stage: "loading", message: "loading..." });
 
     const payload = {};
     if (form.username !== original.username) payload.username = form.username;
     if (form.email    !== original.email) payload.email    = form.email;
     if (form.password.trim()) payload.password = form.password;
-    // from the form, we only want to send the fields that have changed. 
     // the filled ones will be included.
     // Because why not
 
     if (!Object.keys(payload).length) {
-      setStatus({ type: "error", message: "No changes to save." });
+      setStatus({ stage: "error", message: "No changes to save." });
       setSaving(false);
       return;
     }
     // When empty
 
-    const { ok, data } = await updateAccount(payload);
+    const { ok, status: httpStatus, data } = await updateAccount(payload);
+
     setSaving(false);
 
     if (ok) {
-      setStatus({ type: "success", message: data.message });
+      setStatus({ stage: "success", message: data.message });
       setOriginal({ username: form.username, email: form.email });
       setForm((prev) => ({ ...prev, password: "" }));
     } else {
-      setStatus({ type: "error", message: data.error || "Update failed." });
+      setStatus(handleErrorStates(httpStatus, data));
     }
     // Show message if ok or not
+
+    // TODO: handle specific errors (like 409 for username/email taken) and show appropriate messages
+
   }
+
+//  * - 200 + { success: true, message: "Account updated." }
+//  * - 400 Bad Request (invalid JSON, no fields to update)
+//  * - 422 Unprocessable Entity (validation errors)
+//  * - 409 Conflict (username/email already taken)
+//  * - 500 Internal Server Error (DB errors)
+  const handleErrorStates = (status, data) => {
+    switch (status) {
+      case 400:
+        return { stage: "conflict", message: "Invalid request data." };
+      case 422:
+        return { stage: "validation", message:  data.error || "Validation failed.", field: data.field ?? null };
+      case 409:
+        return { stage: "conflict", message: "Username or email already taken.", field: data.field || null };
+      case 500:
+        return { stage: "error", message: "Internal server error." };
+      default:
+        return { stage: "error", message: data.error || "An unexpected error occurred." };
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -75,8 +100,8 @@ export default function AccountPage() {
           <p className="text-gray-400 text-sm">Loading Account Information...</p>
         ) : (
           <form onSubmit={handleSubmit} className="bg-white rounded-xl space-y-4">
-            {status && (
-              <p className={`text-sm rounded p-2 ${status.type === "success" ? "text-green-700 bg-green-50" : "text-red-600 bg-red-50"}`}>
+            {status && !status.field && (
+              <p className={`text-sm rounded p-2 ${status.stage === "success" ? "text-green-700 bg-green-50" : "text-red-600 bg-red-50"}`}>
                 {status.message}
               </p>
             )}
@@ -94,18 +119,23 @@ export default function AccountPage() {
                   value={form[name]}
                   onChange={handleChange}
                   placeholder={placeholder}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${status?.field === name ? "border-red-500" : "border-gray-300"}`}
                 />
+                {status?.field === name && (
+                  <p className="text-red-500 text-xs mt-1">{status.message}</p>
+                )}
               </div>
             ))}
 
-            <button
+            <button 
+            // disabled={ui.status === "loading"}
               type="submit"
               disabled={saving}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg text-sm transition disabled:opacity-50"
             >
               {saving ? "Saving..." : "Save Changes"}
             </button>
+            {/* <button disabled={status?.stage === "loading"} onClick={() => navigate("/forgot-password")} className="w-full text-center text-sm text-blue-600 hover:text-blue-800"> */}
           </form>
         )}
       </main>
