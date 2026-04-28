@@ -6,10 +6,12 @@ import { getFiles } from "../api/files";
 import './FilterButton.css';
 
 const FILTER_OPTIONS = ["Maths", "Computer Science", "SPUB", "O-Level"];
+// ADD more later
 
 const CATEGORY_BUTTONS = [
   { label: "Papers", value: "PAPER", sub: ["O-Level", "SPUB", "Diploma"] },
   { label: "Pictures", value: "PHOTO", sub: ["Placeholder 1", "Placeholder 2"] },
+  // Yeah
 ];
 
 export default function BrowsePage() {
@@ -98,14 +100,17 @@ export default function BrowsePage() {
             <button
               type="button"
               onClick={() => setFilterOpen((o) => !o)}
+              // onClick={() => setIsOpen(!isOpen)} // --- IGNORE ---
+
               className={`px-4 py-2 rounded-lg text-sm border ${activeFilters.length > 0 ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700" : "bg-gray-200 hover:bg-gray-300 text-gray-700 border-transparent"}`}
             >
               Filter{activeFilters.length > 0 ? ` (${activeFilters.length})` : ""}
             </button>
             {filterOpen && (
               <div className="filter-panel">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Subject</p>
-                <div className="flex flex-col gap-2">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Choose Filter option(s) </p>
+                <div className="grid grid-cols-2 gap-1">
+                  {/* ADJUST GRID HERE +++++++++++++++++++++========================-=-=-=-=-=-=-=-=-=-=-=-=-=-=-------============== */}
                   {/* Filter options                         YEAH */}
                   {FILTER_OPTIONS.map((option) => (
                     <label key={option} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
@@ -113,7 +118,7 @@ export default function BrowsePage() {
                         type="checkbox"
                         checked={activeFilters.includes(option)}
                         onChange={() => toggleFilter(option)}
-                        className="accent-blue-600"
+                        className="accent-purple-600"
                       />
                       {option}
                     </label>
