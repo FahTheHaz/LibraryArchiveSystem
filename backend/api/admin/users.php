@@ -83,16 +83,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $role === 'all') {
 // Get all students
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && $role === 'student') {
     $result = $conn->query(
-        "SELECT a.UserID, a.FullName, a.Username, a.Email, a.RoleID, a.Status, a.IsVerified,
-                s.StudentID, s.AcademicYear, s.Course
-         FROM account a
-         INNER JOIN studentProfile s ON a.UserID = s.UserID
-         ORDER BY a.UserID ASC"
+        // TODO: we can optimize this by only selecting student accounts in the main query, then joining with studentProfile. same for staff.
+        // TODO: implement FUllname and maybe course in DB soon
+        "SELECT a.UserID, a.Username, a.Email, a.RoleID, a.Status, a.IsVerified, s.StudentID, s.AcademicYear
+                FROM account a
+                INNER JOIN studentProfile s ON a.UserID = s.UserID
+                ORDER BY a.UserID ASC"
     );
-    $users = [];
-    while ($row = $result->fetch_assoc()) {
-        $users[] = $row;
+    if ($result === false) {
+        http_response_code(500);
+        echo json_encode(["error" => "Query failed: " . $conn->error]);
+        $conn->close(); exit();
     }
+    $users = [];
+    while ($row = $result->fetch_assoc()) { $users[] = $row; }
     $conn->close();
     echo json_encode(["users" => $users]);
     exit();
@@ -101,16 +105,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $role === 'student') {
 // Get all staff
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && $role === 'staff') {
     $result = $conn->query(
-        "SELECT a.UserID, a.FullName, a.Username, a.Email, a.RoleID, a.Status, a.IsVerified,
-                st.StaffID, st.Dept
-         FROM account a
-         INNER JOIN staffProfile st ON a.UserID = st.UserID
-         ORDER BY a.UserID ASC"
+        "SELECT a.UserID, a.Username, a.Email, a.RoleID, a.Status, a.IsVerified, st.StaffID, st.Dept
+                FROM account a
+                INNER JOIN staffProfile st ON a.UserID = st.UserID
+                ORDER BY a.UserID ASC"
     );
-    $users = [];
-    while ($row = $result->fetch_assoc()) {
-        $users[] = $row;
+    if ($result === false) {
+        http_response_code(500);
+        echo json_encode(["error" => "Query failed: " . $conn->error]);
+        $conn->close(); exit();
     }
+    $users = [];
+    while ($row = $result->fetch_assoc()) { $users[] = $row; }
     $conn->close();
     echo json_encode(["users" => $users]);
     exit();

@@ -2,8 +2,9 @@ const BASE = "http://localhost/LAS/backend/api/admin";
 
 export async function getUsers(role) {
   const res = await fetch(`${BASE}/users.php?role=${role}`, { credentials: "include" });
-  return { ok: res.ok, status: res.status, data: await res.json() };
-
+  let data;
+  try { data = await res.json(); } catch { data = { error: "Invalid server response." }; }
+  return { ok: res.ok, status: res.status, data };
 }
 
 // getUsers fetches the list of users from the backend. It returns an object with:

@@ -28,10 +28,14 @@ function RoleBadge({ roleID }) {
 }
 
 const HEADERS = {
-  all:     ["ID", "Email", "Role", "Status", "Verified", "Acad. Year", "Student ID", "Dept", "Staff ID", "Actions"],
-  student: ["ID", "Full Name", "Username", "Email", "Status", "Verified", "Student ID", "Acad. Year", "Course", "Actions"],
-  staff:   ["ID", "Full Name", "Username", "Email", "Status", "Verified", "Staff ID", "Dept", "Actions"],
+  all:     ["ID", "Username", "Email", "Role", "Status", "Verified", "Acad. Year", "Student ID", "Dept", "Staff ID", "Actions"],
+  // student: ["ID", "Full Name", "Username", "Email", "Status", "Verified", "Student ID", "Acad. Year", "Course", "Actions"],
+  // staff:   ["ID", "Full Name", "Username", "Email", "Status", "Verified", "Staff ID", "Dept", "Actions"],
+  student: ["ID", "Username", "Email", "Status", "Verified", "Student ID", "Acad. Year", "Actions"],
+  staff:   ["ID", "Username", "Email", "Status", "Verified", "Staff ID", "Dept", "Actions"],
+
 };
+// table columns
 
 export default function AdminUsersPage() {
   const navigate = useNavigate();
@@ -71,11 +75,14 @@ export default function AdminUsersPage() {
     const q = search.toLowerCase();
     if (view === "all") return u.Email?.toLowerCase().includes(q) || String(u.UserID).includes(q);
     return (
-      u.FullName?.toLowerCase().includes(q) ||
+      // u.FullName?.toLowerCase().includes(q) ||
       u.Username?.toLowerCase().includes(q) ||
       u.Email?.toLowerCase().includes(q)
     );
   });
+  // simple search 
+  // TODO: Add more advanced search/filter options (e.g. by role, status, verification)
+  // TODO: implement fullname later on
 
   function ActionCell({ user }) {
     if (user.RoleID == 1) return <td className="px-4 py-3" />;
@@ -101,6 +108,7 @@ export default function AdminUsersPage() {
     if (view === "all") return (
       <tr key={user.UserID} className="hover:bg-gray-50 transition-colors">
         <td className={`${base} text-gray-400 text-xs`}>{user.UserID}</td>
+        <td className={`${base} font-medium text-gray-800`}>{user.Username}</td>
         <td className={`${base} text-gray-500`}>{user.Email}</td>
         <td className={base}><RoleBadge roleID={user.RoleID} /></td>
         <td className={base}><StatusBadge status={user.Status} /></td>
@@ -116,14 +124,12 @@ export default function AdminUsersPage() {
     if (view === "student") return (
       <tr key={user.UserID} className="hover:bg-gray-50 transition-colors">
         <td className={`${base} text-gray-400 text-xs`}>{user.UserID}</td>
-        <td className={`${base} font-medium text-gray-800`}>{user.FullName}</td>
         <td className={`${base} text-gray-600`}>@{user.Username}</td>
         <td className={`${base} text-gray-500`}>{user.Email}</td>
         <td className={base}><StatusBadge status={user.Status} /></td>
         <td className={`${base} text-gray-500 text-xs`}>{user.IsVerified == 1 ? "Yes" : "No"}</td>
         <td className={`${base} text-gray-500`}>{user.StudentID}</td>
         <td className={`${base} text-gray-500`}>{user.AcademicYear ?? "—"}</td>
-        <td className={`${base} text-gray-500`}>{user.Course ?? "—"}</td>
         <ActionCell user={user} />
       </tr>
     );
@@ -131,7 +137,6 @@ export default function AdminUsersPage() {
     return (
       <tr key={user.UserID} className="hover:bg-gray-50 transition-colors">
         <td className={`${base} text-gray-400 text-xs`}>{user.UserID}</td>
-        <td className={`${base} font-medium text-gray-800`}>{user.FullName}</td>
         <td className={`${base} text-gray-600`}>@{user.Username}</td>
         <td className={`${base} text-gray-500`}>{user.Email}</td>
         <td className={base}><StatusBadge status={user.Status} /></td>
@@ -172,6 +177,9 @@ export default function AdminUsersPage() {
             <button
               key={key}
               onClick={() => { setView(key); setSearch(""); }}
+              // setSearch is from usestate
+              // usestate is from react
+              // setveiw changes the view to either all, student, or staff. veiw 
               className={`px-4 py-2 text-sm font-medium transition-colors ${
                 view === key
                   ? "bg-blue-600 text-white"
