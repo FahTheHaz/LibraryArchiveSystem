@@ -9,9 +9,10 @@ session_start();
 
 // ─── Database Connection ───
 
-header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Origin: http://localhost:5173");
 header("Access-Control-Allow-Methods: PUT, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -105,18 +106,14 @@ if ($action === 'restore') {
 
     $stmt->close();
     $conn->commit();
-} elseif ($action === 'delete') { // action is either 'restore' or 'delete' (default) or perma-delete (not now)
-    // Soft delete: set DeletedAt timestamp - normal users only
+} elseif ($action === 'delete') {
+    // Students (RoleID=2) cannot soft-delete; Admin (1) and Staff (3) can
     if ($RoleID === 2) {
-        http_response_code(403); 
-        echo json_encode(["error" => "Unauthorized. Admins cannot soft-delete files."]);
-        exit();
-    } elseif ($RoleID === 1 && $deleted) { // when already deleted
-        http_response_code(400);
-        echo json_encode(["error" => "File is already deleted."]);
+        http_response_code(403);
+        echo json_encode(["error" => "Unauthorized. Only admins and staff can delete files."]);
         exit();
     }
-    if($deleted) {
+    if ($deleted) {
         http_response_code(400);
         echo json_encode(["error" => "File is already deleted."]);
         exit();

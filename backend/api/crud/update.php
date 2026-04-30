@@ -17,9 +17,10 @@
  */
 
 // ─── CORS & Headers ───
-header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Origin: http://localhost:5173");
 header("Access-Control-Allow-Methods: PUT, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -70,13 +71,10 @@ if ($fileID <= 0) {
     exit();
 }
 
-session_start();
-
-
-// Optional: who is performing the update (for activity logging)
+require_once __DIR__ . '/../../utils/auth.php';
 require_once __DIR__ . '/../../utils/logActivity.php';
-$userID = $_SESSION['userID'] ?? null; // For logging purposes, if we have session info available
-$updatedBy = isset($data['updatedBy']) ? intval($data['updatedBy']) : null;
+$userID    = $currentUserID;
+$updatedBy = $currentUserID;
 
 // ─── Check the File Exists and Get Its Type ───
 
@@ -108,6 +106,16 @@ $conn->begin_transaction();
 
 try {
     $updatedFields = [];
+
+    // Move file to a different folder (or root) if folderID key is present
+    if (array_key_exists('folderID', $data)) {
+        $newFolderID = $data['folderID'] !== null ? intval($data['folderID']) : null;
+        $fStmt = $conn->prepare("UPDATE archive SET folderID = ? WHERE FileID = ?");
+        $fStmt->bind_param("ii", $newFolderID, $fileID);
+        $fStmt->execute();
+        $fStmt->close();
+        $updatedFields[] = "folderID";
+    }
 
     if ($fileType === 'PAPER') {
         // Collect only the fields that were actually sent

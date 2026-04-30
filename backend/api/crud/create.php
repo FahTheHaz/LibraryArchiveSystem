@@ -7,9 +7,10 @@
  */
 
 // ─── CORS & Headers ───
-header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Origin: http://localhost:5173");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json");
 
 // Handle preflight
@@ -24,6 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(["error" => "Method not allowed. Use POST."]);
     exit();
 }
+
+// ─── Auth Guard ───
+require_once __DIR__ . '/../../utils/auth.php';
+// $currentUserID and $currentRoleID are now available
 
 // ─── Database Connection ───
 $host = "localhost";
@@ -58,15 +63,11 @@ if (!in_array($fileType, ['PAPER', 'PHOTO'])) {
     exit();
 }
 
-// Required field: UploadedBy (the UserID of whoever is uploading)
-$uploadedBy = isset($_POST['uploadedBy']) ? intval($_POST['uploadedBy']) : 0;
-$uploadedBy = isset($_SESSION['userID']) ? intval($_SESSION['userID']) : $uploadedBy; // Session overrides POST if available
+// UploadedBy comes from the verified session (set by auth.php)
+$uploadedBy = $currentUserID;
 
-if ($uploadedBy <= 0) {
-    http_response_code(400);
-    echo json_encode(["error" => "Missing or invalid uploadedBy (UserID)."]);
-    exit();
-}
+// Optional: folder to place the file in
+$folderID = isset($_POST['folderID']) && intval($_POST['folderID']) > 0 ? intval($_POST['folderID']) : null;
 
 // ─── File Handling ───
 
@@ -104,7 +105,7 @@ if ($fileType === 'PHOTO' && !in_array($ext, $allowedPhoto)) {
 // Build the storage path
 // Using static folder approach: uploads/papers/ or uploads/photos/
 $subFolder = ($fileType === 'PAPER') ? 'papers' : 'photos';
-$uploadDir = __DIR__ . "api/crud/uploads/{$subFolder}/";
+$uploadDir = __DIR__ . "/../../uploads/{$subFolder}/";
 
 // Create directory if it doesn't exist
 if (!is_dir($uploadDir)) {
@@ -116,7 +117,7 @@ $uniqueName = time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
 $destinationPath = $uploadDir . $uniqueName;
 
 // Relative path to store in DB
-$dbFilePath = "/api/crud/uploads/{$subFolder}/{$uniqueName}";
+$dbFilePath = "/uploads/{$subFolder}/{$uniqueName}";
 
 // Move the file from temp to our uploads folder
 if (!move_uploaded_file($tmpPath, $destinationPath)) {
@@ -131,9 +132,9 @@ $conn->begin_transaction();
 
 try {
     $stmt = $conn->prepare(
-        "INSERT INTO archive (FileType, UploadedBy, filePath) VALUES (?, ?, ?)"
+        "INSERT INTO archive (FileType, UploadedBy, filePath, folderID) VALUES (?, ?, ?, ?)"
     );
-    $stmt->bind_param("sis", $fileType, $uploadedBy, $dbFilePath);
+    $stmt->bind_param("sisi", $fileType, $uploadedBy, $dbFilePath, $folderID);
     $stmt->execute();
 
     $fileID = $conn->insert_id;

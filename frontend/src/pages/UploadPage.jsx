@@ -25,17 +25,21 @@ export default function UploadPage() {
     Object.entries(fields).forEach(([k, v]) => fd.append(k, v));
 
     setLoading(true);
-    const { ok, data, status: httpStatus } = await uploadFile(fd);
-    setLoading(false);
-
-    if (httpStatus === 401) { navigate("/login"); return; }
-    if (ok) {
-      setStatus({ type: "success", message: "Uploaded successfully!" });
-      setFile(null);
-      setFields({});
-      e.target.reset();
-    } else {
-      setStatus({ type: "error", message: data.error || "Upload failed." });
+    try {
+      const { ok, data, status: httpStatus } = await uploadFile(fd);
+      if (httpStatus === 401) { navigate("/login"); return; }
+      if (ok) {
+        setStatus({ type: "success", message: "Uploaded successfully!" });
+        setFile(null);
+        setFields({});
+        e.target.reset();
+      } else {
+        setStatus({ type: "error", message: data?.error || `Upload failed (HTTP ${httpStatus}).` });
+      }
+    } catch (err) {
+      setStatus({ type: "error", message: `Network error: ${err.message}` });
+    } finally {
+      setLoading(false);
     }
   }
 

@@ -89,10 +89,9 @@ if ($file['deletedAt'] !== null && $currentRoleID !== 1) {
 }
 
 // ─── Resolve & Validate Disk Path ─────────────────────────────────────────────
-// filePath in DB: /uploads/papers/filename.pdf
-// Uploads root:   api/uploads/
-$uploadsRoot = realpath(__DIR__ . '/../uploads');
-$diskPath    = realpath(__DIR__ . '/..' . $file['filePath']);
+// filePath in DB: /uploads/papers/filename.pdf  (relative to /backend/)
+$uploadsRoot = realpath(__DIR__ . '/../../uploads');
+$diskPath    = realpath(__DIR__ . '/../..' . $file['filePath']);
 
 // Guard against path traversal — resolved path must be inside uploads root
 if ($diskPath === false || $uploadsRoot === false || strpos($diskPath, $uploadsRoot) !== 0) {

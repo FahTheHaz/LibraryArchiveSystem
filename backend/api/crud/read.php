@@ -30,7 +30,6 @@ header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json");
 require_once __DIR__ . '/../../utils/logActivity.php';
 
-
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
@@ -56,8 +55,9 @@ if ($conn->connect_error) {
     exit();
 }
 
-// ─── Read Parameters ───
-Session_start(); // Start session to get user info for logging
+// ─── Auth & Parameters ───
+require_once __DIR__ . '/../../utils/auth.php';
+// $currentUserID, $currentRoleID available; session already started
 
 $fileID       = isset($_GET['id'])            ? intval($_GET['id'])             : null;
 $fileType     = isset($_GET['type'])          ? strtoupper(trim($_GET['type'])) : null;
@@ -73,7 +73,12 @@ $sort         = isset($_GET['sort'])           ? trim($_GET['sort'])           :
 $page         = isset($_GET['page'])           ? max(1, intval($_GET['page'])) : 1;
 $limit        = isset($_GET['limit'])          ? min(100, max(1, intval($_GET['limit']))) : 20;
 $offset       = ($page - 1) * $limit;
-$readby = $_SESSION['userID'] ?? null; // For logging purposes, if we have session info available
+// Folder filters
+$folderID     = isset($_GET['folderID'])   && $_GET['folderID'] !== '' ? intval($_GET['folderID']) : null;
+$folderPath   = isset($_GET['folderPath']) && $_GET['folderPath'] !== '' ? trim($_GET['folderPath']) : null;
+// Admin/staff can request soft-deleted files
+$showDeleted  = isset($_GET['showDeleted']) && $_GET['showDeleted'] === '1' && in_array($currentRoleID, [1, 3]);
+$readby = $currentUserID;
 
 // ═══════════════════════════════════════════════
 // SINGLE FILE: fetch by ID
@@ -81,12 +86,15 @@ $readby = $_SESSION['userID'] ?? null; // For logging purposes, if we have sessi
 
 if ($fileID !== null) {
     // Grab the archive record first
+    $deletedClause = $showDeleted ? "" : "AND a.deletedAt IS NULL";
     $stmt = $conn->prepare(
         "SELECT a.FileID, a.DateUploaded, a.FileType, a.UploadedBy, a.filePath, a.deletedAt,
+                a.folderID, f.folderName, f.pathIDString,
                 acc.Email AS uploaderEmail
          FROM archive a
          LEFT JOIN account acc ON a.UploadedBy = acc.UserID
-         WHERE a.FileID = ? AND a.deletedAt IS NULL"
+         LEFT JOIN Folders f ON a.folderID = f.folderID
+         WHERE a.FileID = ? {$deletedClause}"
     );
     $stmt->bind_param("i", $fileID);
     $stmt->execute();
@@ -169,8 +177,10 @@ $conditions = [];
 $params = [];
 $types = "";
 
-// Always exclude soft-deleted files
-$conditions[] = "a.deletedAt IS NULL";
+// Exclude soft-deleted files unless admin/staff requested showDeleted
+if (!$showDeleted) {
+    $conditions[] = "a.deletedAt IS NULL";
+}
 
 // Filter by type
 if ($fileType !== null && in_array($fileType, ['PAPER', 'PHOTO'])) {
@@ -183,6 +193,20 @@ if ($fileType !== null && in_array($fileType, ['PAPER', 'PHOTO'])) {
 $needPaperJoin = ($subject || $season || $semester || $code || $scanOrDigital);
 // If filtering by photo-specific fields, we need to join photometadata
 $needPhotoJoin = ($event || $photographer);
+// Folder filtering
+$needFolderJoin = ($folderID !== null || $folderPath !== null);
+
+if ($folderID !== null) {
+    $conditions[] = "a.folderID = ?";
+    $params[]     = $folderID;
+    $types       .= "i";
+} elseif ($folderPath !== null) {
+    // Deep search: exact folder OR any sub-folder whose path starts with folderPath
+    $conditions[] = "(f.pathIDString = ? OR f.pathIDString LIKE ?)";
+    $params[]     = $folderPath;
+    $params[]     = $folderPath . '%';
+    $types       .= "ss";
+}
 
 // Paper filters
 if ($subject) {
@@ -269,7 +293,8 @@ switch ($sort) {
 }
 
 // Build the SELECT query
-$sql = "SELECT a.FileID, a.DateUploaded, a.FileType, a.UploadedBy, a.filePath,
+$sql = "SELECT a.FileID, a.DateUploaded, a.FileType, a.UploadedBy, a.filePath, a.deletedAt,
+               a.folderID, f.folderName, f.pathIDString AS folderPath,
                acc.Email AS uploaderEmail";
 
 // Add paper metadata columns if joining
@@ -282,6 +307,7 @@ if ($needPhotoJoin) {
 
 $sql .= " FROM archive a";
 $sql .= " LEFT JOIN account acc ON a.UploadedBy = acc.UserID";
+$sql .= " LEFT JOIN Folders f ON a.folderID = f.folderID";
 
 if ($needPaperJoin) {
     $sql .= " LEFT JOIN papermetadata pm ON a.FileID = pm.FileID";
@@ -295,8 +321,8 @@ if (!empty($conditions)) {
     $sql .= " WHERE " . implode(" AND ", $conditions);
 }
 
-// Get total count before pagination (for the frontend to know how many pages there are)
 $countSql = "SELECT COUNT(DISTINCT a.FileID) AS total FROM archive a";
+$countSql .= " LEFT JOIN Folders f ON a.folderID = f.folderID";
 if ($needPaperJoin) {
     $countSql .= " LEFT JOIN papermetadata pm ON a.FileID = pm.FileID";
 }
@@ -344,6 +370,10 @@ while ($row = $result->fetch_assoc()) {
         'UploadedBy'    => $row['UploadedBy'],
         'uploaderEmail' => $row['uploaderEmail'],
         'filePath'      => $row['filePath'],
+        'deletedAt'     => $row['deletedAt'],
+        'folderID'      => $row['folderID'],
+        'folderName'    => $row['folderName'],
+        'folderPath'    => $row['folderPath'],
     ];
 
     if ($row['FileType'] === 'PAPER' && $needPaperJoin) {
