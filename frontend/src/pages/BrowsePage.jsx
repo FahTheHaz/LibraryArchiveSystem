@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import FolderTree from "../components/FolderTree";
 import FileGrid from "../components/FileGrid";
+import FileList from "../components/FileList";
 import BulkUploadModal from "../components/BulkUploadModal";
 import { getFiles, getFolders } from "../api/files";
 
@@ -32,6 +33,7 @@ export default function BrowsePage() {
   const [foldLoading,setFoldLoading]= useState(false);
   const [error,      setError]      = useState("");
   const [showUpload, setShowUpload] = useState(false);
+  const [viewMode,   setViewMode]   = useState("grid"); // "grid" | "list"
 
   // ─── Loaders ─────────────────────────────────────────────────────────────────
   const loadFolders = useCallback(async () => {
@@ -76,7 +78,8 @@ export default function BrowsePage() {
   useEffect(() => { setPage(1); }, [search, typeFilter, showDeleted, selectedFolder, deepSearch]);
   useEffect(() => { loadFiles(); }, [loadFiles]);
 
-  // ─── Breadcrumb ──────────────────────────────────────────────────────────────
+  // ─── Breadcrumb --------------------------------------------------------------------------------
+  // To show current folder as clickable links: like "All files / Paper / SPUB / Ugama"
   function Breadcrumb() {
     if (!selectedFolder) return <span className="text-gray-500 text-sm">All files</span>;
     const parts = selectedFolder.pathIDString
@@ -167,6 +170,29 @@ export default function BrowsePage() {
                 Show deleted
               </label>
             )}
+
+            {/* View toggle : */}
+            <div className="flex items-center gap-0.5 bg-gray-100 rounded-lg p-0.5">
+              <button
+                onClick={() => setViewMode("grid")}
+                title="Grid view"
+                className={`p-1.5 rounded-md transition ${viewMode === "grid" ? "bg-white shadow text-blue-600" : "text-gray-400 hover:text-gray-600"}`}
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                // List veiw for simplicity
+                title="List view"
+                className={`p-1.5 rounded-md transition ${viewMode === "list" ? "bg-white shadow text-blue-600" : "text-gray-400 hover:text-gray-600"}`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           {/* File area */}
@@ -179,13 +205,21 @@ export default function BrowsePage() {
 
             {loading
               ? <div className="flex items-center justify-center py-20 text-gray-400 text-sm">Loading…</div>
-              : <FileGrid
-                  files={files}
-                  folders={folders}
-                  isStaff={isStaff}
-                  showDeleted={showDeleted}
-                  onRefresh={loadFiles}
-                />
+              : viewMode === "list"
+                ? <FileList
+                    files={files}
+                    folders={folders}
+                    isStaff={isStaff}
+                    showDeleted={showDeleted}
+                    onRefresh={loadFiles}
+                  />
+                : <FileGrid
+                    files={files}
+                    folders={folders}
+                    isStaff={isStaff}
+                    showDeleted={showDeleted}
+                    onRefresh={loadFiles}
+                  />
             }
 
             {/* Pagination */}

@@ -182,15 +182,16 @@ foreach ($files as $idx => $f) {
         $fileID = $conn->insert_id;
         $ins->close();
 
+        $fileName = $f['name'];  // each file gets its own original name
         if ($fileType === 'PAPER') {
             $m = $sharedMeta;
             $ms = $conn->prepare(
-                "INSERT INTO papermetadata (FileID, Subject, MonthYear, Season, Semester, Code, ScanOrDigital)
-                 VALUES (?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO papermetadata (FileID, Subject, MonthYear, Season, Semester, Code, ScanOrDigital, fileName)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
             );
-            $ms->bind_param("issssss",
+            $ms->bind_param("isssssss",
                 $fileID, $m['subject'], $m['monthYear'], $m['season'],
-                $m['semester'], $m['code'], $m['scanOrDigital']
+                $m['semester'], $m['code'], $m['scanOrDigital'], $fileName
             );
             $ms->execute();
             $ms->close();
@@ -198,12 +199,12 @@ foreach ($files as $idx => $f) {
             $m = $sharedMeta;
             $photoID = $fileID;
             $ms = $conn->prepare(
-                "INSERT INTO photometadata (FileID, PhotoID, DataJSON, Quality, PictureDate, Event, Photographer)
-                 VALUES (?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO photometadata (FileID, PhotoID, DataJSON, Quality, PictureDate, Event, Photographer, fileName)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
             );
-            $ms->bind_param("iisssss",
+            $ms->bind_param("iissssss",
                 $fileID, $photoID, $m['dataJSON'], $m['quality'],
-                $m['pictureDate'], $m['event'], $m['photographer']
+                $m['pictureDate'], $m['event'], $m['photographer'], $fileName
             );
             $ms->execute();
             $ms->close();

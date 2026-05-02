@@ -163,6 +163,12 @@ try {
             $paperTypes .= "s";
             $updatedFields[] = "ScanOrDigital";
         }
+        if (array_key_exists('fileName', $data)) {
+            $paperFields[] = "fileName = ?";
+            $paperParams[] = $data['fileName'];
+            $paperTypes .= "s";
+            $updatedFields[] = "fileName";
+        }
 
         if (empty($paperFields)) {
             throw new Exception("No valid fields provided to update.");
@@ -228,6 +234,12 @@ try {
             $photoParams[] = $data['photographer'];
             $photoTypes .= "s";
             $updatedFields[] = "Photographer";
+        }
+        if (array_key_exists('fileName', $data)) {
+            $photoFields[] = "fileName = ?";
+            $photoParams[] = $data['fileName'];
+            $photoTypes .= "s";
+            $updatedFields[] = "fileName";
         }
 
         if (empty($photoFields)) {

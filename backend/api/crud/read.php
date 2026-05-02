@@ -114,7 +114,7 @@ if ($fileID !== null) {
     // Fetch the appropriate metadata
     if ($file['FileType'] === 'PAPER') {
         $metaStmt = $conn->prepare(
-            "SELECT PaperID, Subject, MonthYear, Season, Semester, Code, ScanOrDigital
+            "SELECT PaperID, Subject, MonthYear, Season, Semester, Code, ScanOrDigital, fileName
              FROM papermetadata WHERE FileID = ?"
         );
         $metaStmt->bind_param("i", $fileID);
@@ -125,7 +125,7 @@ if ($fileID !== null) {
 
     } elseif ($file['FileType'] === 'PHOTO') {
         $metaStmt = $conn->prepare(
-            "SELECT PhotoID, DataJSON, Quality, PictureDate, Event, Photographer
+            "SELECT PhotoID, DataJSON, Quality, PictureDate, Event, Photographer, fileName
              FROM photometadata WHERE FileID = ?"
         );
         $metaStmt->bind_param("i", $fileID);
@@ -189,10 +189,9 @@ if ($fileType !== null && in_array($fileType, ['PAPER', 'PHOTO'])) {
     $types .= "s";
 }
 
-// If filtering by paper-specific fields, we need to join papermetadata
-$needPaperJoin = ($subject || $season || $semester || $code || $scanOrDigital);
-// If filtering by photo-specific fields, we need to join photometadata
-$needPhotoJoin = ($event || $photographer);
+// Always join both metadata tables so fileName and other fields are always available
+$needPaperJoin = true;
+$needPhotoJoin = true;
 // Folder filtering
 $needFolderJoin = ($folderID !== null || $folderPath !== null);
 
@@ -254,8 +253,10 @@ if ($search) {
         pm.Subject LIKE ? OR
         pm.Season LIKE ? OR
         pm.Code LIKE ? OR
+        pm.fileName LIKE ? OR
         phm.Event LIKE ? OR
         phm.Photographer LIKE ? OR
+        phm.fileName LIKE ? OR
         a.filePath LIKE ? OR
         EXISTS (
             SELECT 1 FROM filetags ft
@@ -263,14 +264,11 @@ if ($search) {
             WHERE ft.FileID = a.FileID AND t.TagContent LIKE ?
         )
     )";
-    // 7 parameters for the search
-    for ($i = 0; $i < 7; $i++) {
+    // 9 parameters for the search
+    for ($i = 0; $i < 9; $i++) {
         $params[] = $searchWild;
         $types .= "s";
     }
-    // Force both joins when searching
-    $needPaperJoin = true;
-    $needPhotoJoin = true;
 }
 
 // Sort order
@@ -299,10 +297,10 @@ $sql = "SELECT a.FileID, a.DateUploaded, a.FileType, a.UploadedBy, a.filePath, a
 
 // Add paper metadata columns if joining
 if ($needPaperJoin) {
-    $sql .= ", pm.PaperID, pm.Subject, pm.MonthYear, pm.Season, pm.Semester, pm.Code, pm.ScanOrDigital";
+    $sql .= ", pm.PaperID, pm.Subject, pm.MonthYear, pm.Season, pm.Semester, pm.Code, pm.ScanOrDigital, pm.fileName AS PaperFileName";
 }
 if ($needPhotoJoin) {
-    $sql .= ", phm.PhotoID, phm.Quality, phm.PictureDate, phm.Event, phm.Photographer";
+    $sql .= ", phm.PhotoID, phm.Quality, phm.PictureDate, phm.Event, phm.Photographer, phm.fileName AS PhotoFileName";
 }
 
 $sql .= " FROM archive a";
@@ -376,7 +374,7 @@ while ($row = $result->fetch_assoc()) {
         'folderPath'    => $row['folderPath'],
     ];
 
-    if ($row['FileType'] === 'PAPER' && $needPaperJoin) {
+    if ($row['FileType'] === 'PAPER') {
         $file['metadata'] = [
             'PaperID'       => $row['PaperID'] ?? null,
             'Subject'       => $row['Subject'] ?? null,
@@ -385,14 +383,16 @@ while ($row = $result->fetch_assoc()) {
             'Semester'      => $row['Semester'] ?? null,
             'Code'          => $row['Code'] ?? null,
             'ScanOrDigital' => $row['ScanOrDigital'] ?? null,
+            'FileName'      => $row['PaperFileName'] ?? null,
         ];
-    } elseif ($row['FileType'] === 'PHOTO' && $needPhotoJoin) {
+    } elseif ($row['FileType'] === 'PHOTO') {
         $file['metadata'] = [
             'PhotoID'       => $row['PhotoID'] ?? null,
             'Quality'       => $row['Quality'] ?? null,
             'PictureDate'   => $row['PictureDate'] ?? null,
             'Event'         => $row['Event'] ?? null,
             'Photographer'  => $row['Photographer'] ?? null,
+            'FileName'      => $row['PhotoFileName'] ?? null,
         ];
     }
 

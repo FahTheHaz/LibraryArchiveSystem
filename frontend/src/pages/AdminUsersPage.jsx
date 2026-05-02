@@ -20,8 +20,8 @@ function StatusBadge({ status }) {
 function RoleBadge({ roleID }) {
   const map = {
     1: ["Admin",   "bg-purple-100 text-purple-700"],
-    2: ["Staff",   "bg-blue-100 text-blue-700"],
-    3: ["Student", "bg-gray-100 text-gray-600"],
+    2: ["Student", "bg-gray-100 text-gray-600"],
+    3: ["Staff",   "bg-blue-100 text-blue-700"],
   };
   const [label, cls] = map[roleID] ?? map[3];
   return <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>{label}</span>;
@@ -33,6 +33,7 @@ const HEADERS = {
   // staff:   ["ID", "Full Name", "Username", "Email", "Status", "Verified", "Staff ID", "Dept", "Actions"],
   student: ["ID", "Username", "Email", "Status", "Verified", "Student ID", "Acad. Year", "Actions"],
   staff:   ["ID", "Username", "Email", "Status", "Verified", "Staff ID", "Dept", "Actions"],
+  // for both staff and admin
 
 };
 // table columns

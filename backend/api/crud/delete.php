@@ -8,7 +8,7 @@
 session_start();
 
 // ─── Database Connection ───
-
+// TODO: Create User manual for ts. 
 header("Access-Control-Allow-Origin: http://localhost:5173");
 header("Access-Control-Allow-Methods: PUT, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");

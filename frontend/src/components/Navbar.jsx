@@ -17,6 +17,7 @@ export default function Navbar() {
         LAS
       </Link>
       <div className="flex gap-4 text-sm items-center">
+        <Link to="/" className="text-gray-600 hover:text-gray-900">Home</Link>
         <Link to="/browse" className="text-gray-600 hover:text-gray-900">Browse</Link>
         <Link to="/upload" className="text-gray-600 hover:text-gray-900">Upload</Link>
         <Link to="/account" className="text-gray-600 hover:text-gray-900">Account</Link>

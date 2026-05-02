@@ -3,6 +3,7 @@ import { deleteFile, updateFile, getDownloadUrl, getForceDownloadUrl } from "../
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 function fmt(dateStr) {
+  // to locate date in user's timezone and format as "DD MMM YYYY"
   if (!dateStr) return "—";
   return new Date(dateStr).toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" });
 }
@@ -22,6 +23,7 @@ function EditForm({ file, folders, onDone, onError }) {
   const isPaper = file.FileType === "PAPER";
   const m = file.metadata || {};
   const [fields, setFields] = useState({
+    fileName:      m.FileName      ?? "",
     subject:       m.Subject       ?? "",
     monthYear:     m.MonthYear     ?? "",
     season:        m.Season        ?? "",
@@ -47,6 +49,7 @@ function EditForm({ file, folders, onDone, onError }) {
       : { dataJSON: fields.dataJSON || null, quality: fields.quality, pictureDate: fields.pictureDate,
           event: fields.event, photographer: fields.photographer };
     payload.folderID = fields.folderID === "" ? null : parseInt(fields.folderID, 10);
+    payload.fileName = fields.fileName || null;
 
     const { ok, data } = await updateFile(file.FileID, payload);
     setBusy(false);
@@ -68,6 +71,7 @@ function EditForm({ file, folders, onDone, onError }) {
 
   return (
     <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg space-y-2 text-xs">
+      {input("File Name", "fileName")}
       {isPaper ? (
         <>
           {input("Subject", "subject")}
@@ -85,7 +89,8 @@ function EditForm({ file, folders, onDone, onError }) {
             </select>
           </div>
         </>
-      ) : (
+      ) : ( 
+        // else: photo metadata
         <>
           {input("Event", "event")}
           {input("Photographer", "photographer")}
@@ -141,9 +146,9 @@ function FileCard({ file, checked, onCheck, isStaff, showDeleted, folders, onRef
   }
 
   const meta = file.metadata || {};
-  const title = isPaper
-    ? (meta.Subject || "Untitled paper")
-    : (meta.Event   || "Untitled photo");
+  const title = meta.FileName
+    || file.filePath?.split('/').pop()
+    || (isPaper ? "Untitled paper" : "Untitled photo");
   const sub = isPaper
     ? [meta.Season, meta.MonthYear, meta.Code].filter(Boolean).join(" · ")
     : [meta.Photographer, meta.PictureDate].filter(Boolean).join(" · ");

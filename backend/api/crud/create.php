@@ -45,6 +45,9 @@ if ($conn->connect_error) {
 }
 
 
+// Optional display name — defaults to original uploaded filename if blank
+$fileName = trim($_POST['fileName'] ?? '');
+
 // ─── Validate the Upload ───
 
 // Check that a file was actually sent
@@ -73,6 +76,7 @@ $folderID = isset($_POST['folderID']) && intval($_POST['folderID']) > 0 ? intval
 
 $file = $_FILES['file'];
 $originalName = basename($file['name']);
+if ($fileName === '') $fileName = $originalName;
 $fileSize = $file['size'];
 $tmpPath = $file['tmp_name'];
 
@@ -157,12 +161,12 @@ try {
         }
 
         $metaStmt = $conn->prepare(
-            "INSERT INTO papermetadata (FileID, Subject, MonthYear, Season, Semester, Code, ScanOrDigital)
-             VALUES (?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO papermetadata (FileID, Subject, MonthYear, Season, Semester, Code, ScanOrDigital, fileName)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         );
         $metaStmt->bind_param(
-            "issssss",
-            $fileID, $subject, $monthYear, $season, $semester, $code, $scanOrDigital
+            "isssssss",
+            $fileID, $subject, $monthYear, $season, $semester, $code, $scanOrDigital, $fileName
         );
         $metaStmt->execute();
         $metaStmt->close();
@@ -189,12 +193,12 @@ try {
         $photoID = $fileID;
 
         $metaStmt = $conn->prepare(
-            "INSERT INTO photometadata (FileID, PhotoID, DataJSON, Quality, PictureDate, Event, Photographer)
-             VALUES (?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO photometadata (FileID, PhotoID, DataJSON, Quality, PictureDate, Event, Photographer, fileName)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         );
         $metaStmt->bind_param(
-            "iisssss",
-            $fileID, $photoID, $dataJSON, $quality, $pictureDate, $event, $photographer
+            "iissssss",
+            $fileID, $photoID, $dataJSON, $quality, $pictureDate, $event, $photographer, $fileName
         );
         $metaStmt->execute();
         $metaStmt->close();
