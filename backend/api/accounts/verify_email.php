@@ -2,11 +2,12 @@
 /**
  * verify_email.php
  *
- * Consumes an email verification token and activates the account.
+ * Consume email verification token, activate the account
  * Called when the user clicks the link in their registration email.
- *
+ * TODO: MAke this actually work
+ * For now we rely on admin access to verify and activate an account
  * GET /accounts/verify_email.php?token=<hex_token>
- *
+ * 
  * Returns:
  *   200 { "message": "Email verified. You can now log in." }
  *   400 missing token
@@ -65,7 +66,7 @@ if ($token === '') {
     exit();
 }
 
-// ─── Look Up Token ────────────────────────────────────────────────────────────
+// ─── Look Up Token 
 $stmt = $conn->prepare(
     "SELECT VerifyID, UserID
      FROM email_verifications
@@ -85,13 +86,13 @@ if (!$row) {
 $userID   = (int) $row['UserID'];
 $verifyID = (int) $row['VerifyID'];
 
-// ─── Activate Account ─────────────────────────────────────────────────────────
+// ─── Activate Account 
 $conn->begin_transaction();
 
 try {
     // Mark token as used
     $markUsed = $conn->prepare(
-        "UPDATE emailVerifications SET UsedAt = NOW() WHERE VerifyID = ?"
+        "UPDATE email_verifications SET UsedAt = NOW() WHERE VerifyID = ?"
     );
     $markUsed->bind_param("i", $verifyID);
     $markUsed->execute();
@@ -119,3 +120,4 @@ try {
 }
 
 $conn->close();
+// F

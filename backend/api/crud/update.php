@@ -276,7 +276,7 @@ try {
     // $logStmt->close();
 
     require_once __DIR__ . '/../../utils/logActivity.php';
-    logActivity($conn, $updatedBy, "UPDATE", "Updated FileID {$fileID}: " . implode(", ", $updatedFields));
+    logActivity($conn, $updatedBy, "UPDATE", "Updated FileID {$fileID}: " . implode(", ", $updatedFields), $fileID);
     
 
     $conn->commit();

@@ -9,6 +9,8 @@
  * Returns:
  *   200 { "message": "Logged out." }
  *   405 wrong method
+ * 
+ *   From online
  */
 
 // ─── CORS & Headers ───────────────────────────────────────────────────────────

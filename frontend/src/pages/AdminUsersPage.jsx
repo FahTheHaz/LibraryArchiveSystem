@@ -1,18 +1,14 @@
-// AdminUsersPage.jsx
-// Page for administrators to manage users: view details, search, and ban/unban accounts.
-// TODO: Add page for admin staff to make their accounts.
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { getUsers, setUserStatus } from "../api/admin";
+import { getUsers, setUserStatus, verifyUser, rejectUser } from "../api/admin";
 
 function StatusBadge({ status }) {
   return (
     <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
       status === "active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
     }`}>
-      {status === "active" ? "Active" : "Banned"}
+      {status === "active" ? "Active" : status === "banned" ? "Banned" : status}
     </span>
   );
 }
@@ -23,20 +19,16 @@ function RoleBadge({ roleID }) {
     2: ["Student", "bg-gray-100 text-gray-600"],
     3: ["Staff",   "bg-blue-100 text-blue-700"],
   };
-  const [label, cls] = map[roleID] ?? map[3];
+  const [label, cls] = map[roleID] ?? ["Unknown", "bg-gray-100 text-gray-500"];
   return <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>{label}</span>;
 }
 
 const HEADERS = {
   all:     ["ID", "Username", "Email", "Role", "Status", "Verified", "Acad. Year", "Student ID", "Dept", "Staff ID", "Actions"],
-  // student: ["ID", "Full Name", "Username", "Email", "Status", "Verified", "Student ID", "Acad. Year", "Course", "Actions"],
-  // staff:   ["ID", "Full Name", "Username", "Email", "Status", "Verified", "Staff ID", "Dept", "Actions"],
   student: ["ID", "Username", "Email", "Status", "Verified", "Student ID", "Acad. Year", "Actions"],
   staff:   ["ID", "Username", "Email", "Status", "Verified", "Staff ID", "Dept", "Actions"],
-  // for both staff and admin
-
+  pending: ["ID", "Full Name", "Username", "Email", "Role", "Student ID / Staff ID", "Actions"],
 };
-// table columns
 
 export default function AdminUsersPage() {
   const navigate = useNavigate();
@@ -63,6 +55,7 @@ export default function AdminUsersPage() {
 
   async function handleToggleBan(user) {
     const action = user.Status === "active" ? "ban" : "unban";
+    // Ban sets Status='banned', unban sets Status='active'
     setActionLoading(user.UserID);
     const { ok, data } = await setUserStatus(user.UserID, action);
     setActionLoading(null);
@@ -72,20 +65,60 @@ export default function AdminUsersPage() {
     );
   }
 
+  async function handleVerify(user) {
+    setActionLoading(user.UserID);
+    const { ok, data } = await verifyUser(user.UserID);
+    setActionLoading(null);
+    if (!ok) { alert(data.error || "Approval failed."); return; }
+    setUsers((prev) => prev.filter((u) => u.UserID !== user.UserID));
+  }
+
+  async function handleReject(user) {
+    if (!confirm(`Reject and delete account for "${user.Username}"? This cannot be undone.`)) return;
+    setActionLoading(user.UserID);
+    const { ok, data } = await rejectUser(user.UserID);
+    setActionLoading(null);
+    if (!ok) { alert(data.error || "Rejection failed."); return; }
+    setUsers((prev) => prev.filter((u) => u.UserID !== user.UserID));
+  }
+
   const filtered = users.filter((u) => {
     const q = search.toLowerCase();
+    if (!q) return true;
+    if (view === "pending") {
+      return (
+        u.FullName?.toLowerCase().includes(q) ||
+        u.Username?.toLowerCase().includes(q) ||
+        u.Email?.toLowerCase().includes(q)
+      );
+    }
     if (view === "all") return u.Email?.toLowerCase().includes(q) || String(u.UserID).includes(q);
-    return (
-      // u.FullName?.toLowerCase().includes(q) ||
-      u.Username?.toLowerCase().includes(q) ||
-      u.Email?.toLowerCase().includes(q)
-    );
+    return u.Username?.toLowerCase().includes(q) || u.Email?.toLowerCase().includes(q);
   });
-  // simple search 
-  // TODO: Add more advanced search/filter options (e.g. by role, status, verification)
-  // TODO: implement fullname later on
 
   function ActionCell({ user }) {
+    if (view === "pending") {
+      return (
+        <td className="px-4 py-3">
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleVerify(user)}
+              disabled={actionLoading === user.UserID}
+              className="px-3 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 disabled:opacity-40 transition-colors"
+            >
+              {actionLoading === user.UserID ? "..." : "Approve"}
+            </button>
+            <button
+              onClick={() => handleReject(user)}
+              disabled={actionLoading === user.UserID}
+              className="px-3 py-1 rounded-md text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 disabled:opacity-40 transition-colors"
+            >
+              Reject
+            </button>
+          </div>
+        </td>
+      );
+    }
     if (user.RoleID == 1) return <td className="px-4 py-3" />;
     return (
       <td className="px-4 py-3">
@@ -104,8 +137,23 @@ export default function AdminUsersPage() {
     );
   }
 
+  const base = "px-4 py-3";
+
   function renderRow(user) {
-    const base = "px-4 py-3";
+    if (view === "pending") return (
+      <tr key={user.UserID} className="hover:bg-gray-50 transition-colors">
+        <td className={`${base} text-gray-400 text-xs`}>{user.UserID}</td>
+        <td className={`${base} text-gray-700`}>{user.FullName || "—"}</td>
+        <td className={`${base} font-medium text-gray-800`}>@{user.Username}</td>
+        <td className={`${base} text-gray-500`}>{user.Email}</td>
+        <td className={base}><RoleBadge roleID={user.RoleID} /></td>
+        <td className={`${base} text-gray-500 text-xs`}>
+          {user.StudentID || user.StaffID || "—"}
+        </td>
+        <ActionCell user={user} />
+      </tr>
+    );
+
     if (view === "all") return (
       <tr key={user.UserID} className="hover:bg-gray-50 transition-colors">
         <td className={`${base} text-gray-400 text-xs`}>{user.UserID}</td>
@@ -150,7 +198,7 @@ export default function AdminUsersPage() {
   }
 
   const headers = HEADERS[view];
-  const countLabel = view === "all" ? "registered users" : view === "student" ? "students" : "staff members";
+  const countLabels = { all: "registered users", student: "students", staff: "staff members", pending: "pending requests" };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -159,7 +207,7 @@ export default function AdminUsersPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">User Management</h1>
-            <p className="text-sm text-gray-500 mt-0.5">{users.length} {countLabel}</p>
+            <p className="text-sm text-gray-500 mt-0.5">{users.length} {countLabels[view]}</p>
           </div>
           <input
             value={search}
@@ -174,29 +222,38 @@ export default function AdminUsersPage() {
             { key: "all",     label: "All Users" },
             { key: "student", label: "Students"  },
             { key: "staff",   label: "Staff"     },
+            { key: "pending", label: "Pending"   },
           ].map(({ key, label }) => (
             <button
               key={key}
               onClick={() => { setView(key); setSearch(""); }}
-              // setSearch is from usestate
-              // usestate is from react
-              // setveiw changes the view to either all, student, or staff. veiw 
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
+              className={`px-4 py-2 text-sm font-medium transition-colors relative ${
                 view === key
-                  ? "bg-blue-600 text-white"
+                  ? key === "pending" ? "bg-amber-500 text-white" : "bg-blue-600 text-white"
                   : "bg-white text-gray-600 hover:bg-gray-50"
               }`}
             >
               {label}
+              {key === "pending" && view !== "pending" && users.length > 0 && view === key && (
+                <span className="ml-1.5 bg-amber-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                  {users.length}
+                </span>
+              )}
             </button>
           ))}
         </div>
+
+        {view === "pending" && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-4 text-sm text-amber-800">
+            These accounts are awaiting approval. Approving sends an activation email and grants login access. Rejecting permanently deletes the account.
+          </div>
+        )}
 
         {loading && <p className="text-gray-500 text-sm">Loading users...</p>}
         {error   && <p className="text-red-500 text-sm">{error}</p>}
 
         {!loading && !error && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
@@ -211,7 +268,7 @@ export default function AdminUsersPage() {
                 {filtered.length === 0 && (
                   <tr>
                     <td colSpan={headers.length} className="px-4 py-6 text-center text-gray-400 text-sm">
-                      No users found.
+                      {view === "pending" ? "No pending requests." : "No users found."}
                     </td>
                   </tr>
                 )}

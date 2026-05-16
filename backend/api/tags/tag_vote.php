@@ -90,7 +90,7 @@ if (!$tagRow) {
 
 // ─── Check existing vote ──────────────────────────────────────────────────────
 $existingStmt = $conn->prepare(
-    "SELECT voteValue FROM tagvote WHERE UserID = ? AND TagID = ?"
+    "SELECT Vote FROM tagvotes WHERE UserID = ? AND TagID = ?"
 );
 $existingStmt->bind_param("ii", $currentUserID, $tagID);
 $existingStmt->execute();

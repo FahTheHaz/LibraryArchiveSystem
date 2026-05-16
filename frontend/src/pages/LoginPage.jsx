@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { login } from "../api/auth";
+import TurnstileWidget from "../components/TurnstileWidget";
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
 
   function handleChange(e) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -15,20 +17,26 @@ export default function LoginPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (!captchaToken) {
+      setError("Please complete the CAPTCHA.");
+      return;
+    }
     setLoading(true);
-    const { ok, data } = await login(form.username, form.password);
+    const { ok, data } = await login(form.username, form.password, captchaToken);
     setLoading(false);
     if (ok) {
       localStorage.setItem("las_role", String(data.roleID));
       navigate("/browse");
     } else {
       setError(data.error || "Login failed.");
+      setCaptchaToken("");
+      if (window.turnstile) window.turnstile.reset();
     }
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white rounded-xl shadow p-8 w-full max-w-sm">
+      <div className="bg-white rounded-xl border border-gray-200 p-8 w-full max-w-sm">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">Sign in</h1>
 
         {error && (
@@ -58,6 +66,8 @@ export default function LoginPage() {
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+
+          <TurnstileWidget onVerify={setCaptchaToken} />
 
           <button
             type="submit"

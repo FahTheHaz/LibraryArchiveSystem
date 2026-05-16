@@ -14,7 +14,7 @@
  *   405 wrong method
  */
 
-// ─── CORS & Headers ───────────────────────────────────────────────────────────
+// ─── CORS & Headers 
 header("Access-Control-Allow-Origin: http://localhost:5173"); // Vite dev server
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
@@ -41,6 +41,7 @@ session_set_cookie_params([
     'samesite' => 'Strict'
 ]);
 session_start();
+// From session
 
 // ─── DB Connection 
 $conn = new mysqli("localhost", "root", "", "las_db");
@@ -64,17 +65,41 @@ if (!isset($body['username'], $body['password'])) {
 $username = trim($body['username']);
 $password = $body['password'];
 
-// ─── CAPTCHA Placeholder ──────────────────────────────────────────────────────
-// TODO: replace this block with real reCAPTCHA v3 verification
-// $captchaToken = $body['captchaToken'] ?? '';
-// if (!verifyCaptcha($captchaToken)) {
-//     http_response_code(400);
-//     echo json_encode(["error" => "CAPTCHA verification failed."]);
-//     exit();
-// }
+// ─── CAPTCHA — Cloudflare Turnstile ──────────────────────────────────────────
+$captchaToken    = $body['captchaToken'] ?? '';
+$turnstileSecret = '1x0000000000000000000000000000000AA'; // TODO: replace with real secret key from env
+$clientIP        = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
-// ─── Fetch User ───────────────────────────────────────────────────────────────
-$stmt = $conn->prepare("SELECT UserID, PassHash, RoleID, IsVerified FROM account WHERE Username = ?");
+if ($captchaToken === '') {
+    http_response_code(422);
+    echo json_encode(["error" => "CAPTCHA verification required."]);
+    exit();
+}
+
+$ch = curl_init('https://challenges.cloudflare.com/turnstile/v0/siteverify');
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_POST           => true,
+    CURLOPT_TIMEOUT        => 5,
+    CURLOPT_SSL_VERIFYPEER => false, // needed on local XAMPP (no CA bundle)
+    CURLOPT_POSTFIELDS     => http_build_query([
+        'secret'   => $turnstileSecret,
+        'response' => $captchaToken,
+        'remoteip' => $clientIP,
+    ]),
+    CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded'],
+]);
+$turnstileResponse = curl_exec($ch);
+$turnstileData     = $turnstileResponse ? json_decode($turnstileResponse, true) : null;
+if (!($turnstileData['success'] ?? false)) {
+    logActivity($conn, null, "LOGIN_FAIL", "CAPTCHA failed | username: {$username}");
+    http_response_code(422);
+    echo json_encode(["error" => "CAPTCHA verification failed. Please try again."]);
+    exit();
+}
+
+// ─── Fetch User 
+$stmt = $conn->prepare("SELECT UserID, PassHash, RoleID, IsVerified, Status FROM account WHERE Username = ?");
 $stmt->bind_param("s", $username);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -94,16 +119,24 @@ $userID         = $user['UserID'];
 $hashedPassword = $user['PassHash'];
 $roleID         = $user['RoleID'];
 $isVerified     = (int) $user['IsVerified'];
+$accountStatus  = $user['Status'];
 
-// ─── Block unverified accounts ────────────────────────────────────────────────
-// TODO: Uncomment this block when email verification is implemented. For now, we allow login regardless of verification status to facilitate testing. Remember to re-enable this check before production deployment.
-// if ($isVerified === 0) {
-//     logActivity($conn, $userID, "LOGIN_FAIL", "Login blocked — email not verified for username: {$username}");
-//     $conn->close();
-//     http_response_code(403);
-//     echo json_encode(["error" => "Please verify your email address before logging in. Check your inbox for the verification link."]);
-//     exit();
-// }
+// ─── Block unverified / banned accounts ──────────────────────────────────────
+if ($isVerified === 0) {
+    logActivity($conn, $userID, "LOGIN_FAIL", "Login blocked — account pending approval for username: {$username}");
+    $conn->close();
+    http_response_code(403);
+    echo json_encode(["error" => "Your account is pending approval by library staff. You will receive an email once it is activated."]);
+    exit();
+}
+
+if ($accountStatus === 'banned') {
+    logActivity($conn, $userID, "LOGIN_FAIL", "Login blocked — account banned for username: {$username}");
+    $conn->close();
+    http_response_code(403);
+    echo json_encode(["error" => "Your account has been suspended. Please contact the library administration."]);
+    exit();
+}
 
 // ─── Verify Password ──────────────────────────────────────────────────────────
 if (!password_verify($password, $hashedPassword)) {
@@ -129,3 +162,4 @@ echo json_encode([
     "message" => "Login successful.",
     "roleID"  => $roleID,
 ]);
+

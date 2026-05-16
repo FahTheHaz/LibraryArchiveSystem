@@ -210,7 +210,14 @@ foreach ($files as $idx => $f) {
             $ms->close();
         }
 
-        logActivity($conn, $currentUserID, "BULK_UPLOAD", "Bulk uploaded {$fileType}: {$f['name']}");
+        $qStmt = $conn->prepare(
+            "INSERT INTO ProcessingQueue (FileID, Status, TargetMethod) VALUES (?, 'pending', 'local')"
+        );
+        $qStmt->bind_param("i", $fileID);
+        $qStmt->execute();
+        $qStmt->close();
+
+        logActivity($conn, $currentUserID, "BULK_UPLOAD", "Bulk uploaded {$fileType}: {$f['name']}", $fileID);
         $conn->commit();
         $uploaded[] = ["file" => $label, "fileID" => $fileID, "filePath" => $dbPath];
     } catch (Exception $e) {

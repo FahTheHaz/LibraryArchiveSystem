@@ -149,7 +149,7 @@ function FolderNode({
               ···
             </button>
             {menuOpen && (
-              <div className="absolute right-0 top-6 z-50 bg-white border border-gray-200 rounded shadow-lg text-xs w-36">
+              <div className="absolute right-0 top-6 z-50 bg-white border border-gray-200 rounded text-xs border border-gray-200 w-36">
                 <button className="w-full text-left px-3 py-2 hover:bg-gray-50" onClick={() => startMode("newFolder")}>New sub-folder</button>
                 <button className="w-full text-left px-3 py-2 hover:bg-gray-50" onClick={() => startMode("rename", folder.folderName)}>Rename</button>
                 <button className="w-full text-left px-3 py-2 hover:bg-gray-50" onClick={() => startMode("move")}>Move</button>

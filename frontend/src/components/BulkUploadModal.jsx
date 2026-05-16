@@ -29,6 +29,10 @@ export default function BulkUploadModal({ folders, onClose, onDone }) {
   const fileRef = useRef();
 
   function setMetaField(k, v) { setMeta((p) => ({ ...p, [k]: v })); }
+  // used to update the meta state object( holds the shared metadata for the files being uploaded)
+  // Takes key (k) and value (v) as arguments, then updates the meta state by creating a new object that spreads the previous state (p) and sets the specified key to the new value
+  // This is for dynamic updating of individual metadata fields without affecting the others.
+  // 
 
   function addFiles(incoming) {
     setFiles((prev) => {
@@ -39,14 +43,20 @@ export default function BulkUploadModal({ folders, onClose, onDone }) {
   }
 
   function removeFile(idx) { setFiles((p) => p.filter((_, i) => i !== idx)); }
-
+  // used to remove a file from the files state array based on its index (idx)
+  // It updates the files state by filtering out the file at the specified index, effectively removing it from the list of files to be uploaded.
+//  So 1/2/3, 3 is removed by filtering out index 2, and only keeping indexes 0 and 1 (1 and 2 in the original array).
   function handleDrop(e) {
+    // hANDLES Drag and drop
     e.preventDefault();
     setDragOver(false);
     addFiles(e.dataTransfer.files);
   }
 
+  // 
   async function handleSubmit() {
+    // Handles the submission of files for bulk upload. It first checks if there are any files to upload; if not, it simply returns. 
+    // I haveto make it so that it sets the busy state to true and clears any previous results.
     if (files.length === 0) return;
     setBusy(true);
     setResults(null);
@@ -82,7 +92,7 @@ export default function BulkUploadModal({ folders, onClose, onDone }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col">
+      <div className="bg-white rounded-2xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <h2 className="text-lg font-semibold text-gray-800">Bulk Upload</h2>

@@ -5,15 +5,19 @@ Backend: PHP
 Database: MySQL
 Server: XAMPP
 
-Features:
-- User authentification and login
-- Archive Upload
-- Search System
-- Tagging
+For implementation into NPM RUN DEV:
 
-Soon:
-- OCR Scanner
-- AI Modules
+        Execute Las_db.sql in phpmyadmin to create the database schema first. 
+
+        Use make_hash.php to create a password to put in passhash, if you want to manually insert an account in account in DB editor
+
+        Else you can use these credentials below to access "admin" access in role
+        Username: testuser_5304
+        password: admin1234
+
+        "User" account:
+        fahim_haz
+        gogadoda123
 
 
 

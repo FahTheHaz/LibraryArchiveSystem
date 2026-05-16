@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { deleteFile, updateFile, getDownloadUrl, getForceDownloadUrl } from "../api/files";
+import { getFileTags, createTag, detachTag } from "../api/tags";
+import FilePreviewModal from "./FilePreviewModal";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(dateStr) {
@@ -34,16 +36,214 @@ function InlineInput({ placeholder, value, onChange, type = "text", mono = false
   );
 }
 
+// ─── Simple tag pill (no voting, just display) ────────────────────────────────
+function TagPill({ tag, onDetach }) {
+  const isUser = !tag.Source;
+  const cls = isUser
+    ? "bg-green-50 text-green-700 border-green-200"
+    : "bg-blue-50 text-blue-700 border-blue-200";
+  return (
+    <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[11px] border ${cls} whitespace-nowrap`}>
+      {tag.TagContent}
+      {onDetach && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onDetach(tag.TagID); }}
+          className="ml-0.5 opacity-50 hover:opacity-100 hover:text-red-500 leading-none"
+          title="Remove"
+        >×</button>
+      )}
+    </span>
+  );
+}
+
+// ─── Inline tag chips for the list row ────────────────────────────────────────
+// Display mode: collapsed → click → load & show (up to 6 user + 6 AI, expand for all)
+// Edit mode:    show all with detach ×, plus add form
+function RowTagChips({ fileID, editing, isAdmin }) {
+  const [open,     setOpen]     = useState(false);
+  const [tags,     setTags]     = useState(null);   // null = not yet fetched
+  const [loading,  setLoading]  = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [newTag,   setNewTag]   = useState("");
+  const [addBusy,  setAddBusy]  = useState(false);
+  const [err,      setErr]      = useState("");
+
+  const loadTags = useCallback(async () => {
+    setLoading(true);
+    const { ok, data } = await getFileTags(fileID);
+    setLoading(false);
+    if (ok) {
+      setTags([...(data.tags || [])].sort((a, b) => (b.Helpfulness || 0) - (a.Helpfulness || 0)));
+    }
+  }, [fileID]);
+
+  // Auto-load when entering edit mode
+  useEffect(() => {
+    if (editing && tags === null) loadTags();
+  }, [editing, tags, loadTags]);
+
+  function handleOpen(e) {
+    e.stopPropagation();
+    if (tags === null) loadTags();
+    setOpen(true);
+  }
+
+  function handleClose(e) {
+    e.stopPropagation();
+    setOpen(false);
+    setExpanded(false);
+  }
+
+  async function doDetach(tagID) {
+    const { ok, data } = await detachTag(tagID, fileID);
+    if (!ok) { setErr(data?.error || "Failed to remove."); return; }
+    setTags((prev) => prev.filter((t) => t.TagID !== tagID));
+  }
+
+  async function doAdd(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!newTag.trim()) return;
+    setAddBusy(true);
+    setErr("");
+    const { ok, data } = await createTag(newTag.trim(), fileID);
+    setAddBusy(false);
+    if (!ok) { setErr(data?.error || "Tag already on this file."); return; }
+    setNewTag("");
+    loadTags();
+  }
+
+  const userTags = (tags || []).filter((t) => !t.Source);
+  const aiTags   = (tags || []).filter((t) => t.Source);
+
+  // ── EDIT MODE ──────────────────────────────────────────────────────────────
+  if (editing) {
+    return (
+      <div className="mt-2 space-y-1.5" onClick={(e) => e.stopPropagation()}>
+        {loading && <span className="text-[10px] text-gray-400">Loading tags…</span>}
+        {tags !== null && (
+          <div className="flex flex-wrap gap-1">
+            {userTags.map((t) => (
+              <TagPill key={t.TagID} tag={t} onDetach={() => doDetach(t.TagID)} />
+            ))}
+            {aiTags.map((t) => (
+              <TagPill key={t.TagID} tag={t} onDetach={isAdmin ? () => doDetach(t.TagID) : null} />
+            ))}
+            {tags.length === 0 && (
+              <span className="text-[10px] text-gray-400 italic">No tags</span>
+            )}
+          </div>
+        )}
+        {err && <p className="text-[10px] text-red-500">{err}</p>}
+        <form onSubmit={doAdd} className="flex gap-1">
+          <input
+            type="text"
+            value={newTag}
+            onChange={(e) => setNewTag(e.target.value)}
+            placeholder="Add tag…"
+            maxLength={100}
+            className="flex-1 min-w-0 border border-gray-300 rounded px-1.5 py-0.5 text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-400"
+          />
+          <button
+            type="submit"
+            disabled={addBusy || !newTag.trim()}
+            className="px-2 py-0.5 text-[11px] bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
+          >
+            {addBusy ? "…" : "+ Add"}
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  // ── DISPLAY MODE — collapsed ───────────────────────────────────────────────
+  if (!open) {
+    return (
+      <button
+        onClick={handleOpen}
+        className="mt-1 flex items-center gap-1 text-[11px] text-gray-400 hover:text-blue-600 transition-colors"
+      >
+        <svg className="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M17.707 9.293l-7-7A.997.997 0 0010 2H4a2 2 0 00-2 2v6c0 .266.105.52.293.707l7 7a1 1 0 001.414 0l7-7a1 1 0 000-1.414z" clipRule="evenodd" />
+        </svg>
+        Tags
+      </button>
+    );
+  }
+
+  // ── DISPLAY MODE — expanded ────────────────────────────────────────────────
+  const shownUser = expanded ? userTags : userTags.slice(0, 6);
+  const shownAI   = expanded ? aiTags   : aiTags.slice(0, 6);
+  const hasMore   = !expanded && (userTags.length > 6 || aiTags.length > 6);
+
+  return (
+    <div className="mt-1.5 space-y-1" onClick={(e) => e.stopPropagation()}>
+      {loading && <span className="text-[10px] text-gray-400">Loading…</span>}
+
+      {tags !== null && (
+        <>
+          {/* User tags — green */}
+          {shownUser.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {shownUser.map((t) => <TagPill key={t.TagID} tag={t} />)}
+              {!expanded && userTags.length > 6 && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setExpanded(true); }}
+                  className="text-[10px] text-gray-400 hover:text-gray-600 self-center"
+                >
+                  +{userTags.length - 6} more
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* AI tags — blue */}
+          {shownAI.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {shownAI.map((t) => <TagPill key={t.TagID} tag={t} />)}
+              {!expanded && aiTags.length > 6 && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setExpanded(true); }}
+                  className="text-[10px] text-gray-400 hover:text-gray-600 self-center"
+                >
+                  +{aiTags.length - 6} more
+                </button>
+              )}
+            </div>
+          )}
+
+          {tags.length === 0 && (
+            <span className="text-[10px] text-gray-300 italic">No tags yet</span>
+          )}
+
+          {hasMore && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setExpanded(true); }}
+              className="text-[10px] text-blue-500 hover:text-blue-700"
+            >
+              Show all tags
+            </button>
+          )}
+        </>
+      )}
+
+      <button
+        onClick={handleClose}
+        className="text-[10px] text-gray-400 hover:text-gray-600"
+      >
+        ▲ hide tags
+      </button>
+    </div>
+  );
+}
+
 // ─── Single file row ──────────────────────────────────────────────────────────
-function FileRow({ file, checked, onCheck, isStaff, folders, onRefresh, onError }) {
+function FileRow({ file, checked, onCheck, isStaff, isAdmin, folders, onRefresh, onError, onPreview }) {
   const isPaper   = file.FileType === "PAPER";
   const isDeleted = !!file.deletedAt;
   const m         = file.metadata || {};
 
-  // TODO: Add a new column for paperTitle and Month and year seperated.
-  
-
-  const title  = m.FileName || file.filePath?.split('/').pop() || (isPaper ? "Untitled paper" : "Untitled photo");
+  const title  = m.FileName || file.filePath?.split("/").pop() || (isPaper ? "Untitled paper" : "Untitled photo");
   const detail = isPaper
     ? [m.Season, m.MonthYear, m.Code, m.ScanOrDigital].filter(Boolean).join(" · ")
     : [m.Photographer, m.Quality, m.PictureDate ? fmt(m.PictureDate) : null].filter(Boolean).join(" · ");
@@ -107,8 +307,8 @@ function FileRow({ file, checked, onCheck, isStaff, folders, onRefresh, onError 
           event:         fields.event          || null,
           photographer:  fields.photographer   || null,
         };
-    payload.folderID  = fields.folderID === "" ? null : parseInt(fields.folderID, 10);
-    payload.fileName  = fields.fileName || null;
+    payload.folderID = fields.folderID === "" ? null : parseInt(fields.folderID, 10);
+    payload.fileName = fields.fileName || null;
 
     const { ok, data } = await updateFile(file.FileID, payload);
     setBusy(false);
@@ -139,7 +339,7 @@ function FileRow({ file, checked, onCheck, isStaff, folders, onRefresh, onError 
     onRefresh();
   }
 
-  // ── Thumbnail cell (shared between modes) ─────────────────────────────────
+  // ── Thumbnail cell ─────────────────────────────────────────────────────────
   const thumbCell = (
     <td className="pr-2 py-2 w-12">
       {!isPaper ? (
@@ -165,7 +365,6 @@ function FileRow({ file, checked, onCheck, isStaff, folders, onRefresh, onError 
   if (editing) {
     return (
       <tr className="border-b border-indigo-100 bg-indigo-50/30">
-        {/* Checkbox */}
         <td className="pl-3 pr-2 py-2 w-8">
           <input type="checkbox" checked={checked} onChange={(e) => onCheck(file.FileID, e.target.checked)}
             className="w-4 h-4 accent-blue-600 cursor-pointer" />
@@ -173,7 +372,6 @@ function FileRow({ file, checked, onCheck, isStaff, folders, onRefresh, onError 
 
         {thumbCell}
 
-        {/* Type badge */}
         <td className="py-2 pr-2 w-24">
           <div className="flex flex-col gap-0.5">
             <Badge label={file.FileType} colour={isPaper ? "blue" : "yellow"} />
@@ -181,7 +379,7 @@ function FileRow({ file, checked, onCheck, isStaff, folders, onRefresh, onError 
           </div>
         </td>
 
-        {/* Title input + folder selector */}
+        {/* Title + tags edit */}
         <td className="py-2 pr-3 min-w-0">
           {localErr && <p className="text-[10px] text-red-600 mb-1 leading-tight">{localErr}</p>}
           <input
@@ -195,16 +393,18 @@ function FileRow({ file, checked, onCheck, isStaff, folders, onRefresh, onError 
           <select
             value={fields.folderID}
             onChange={(e) => setF("folderID", e.target.value)}
-            className="w-full border border-gray-300 rounded px-2 py-1 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-400"
+            className="w-full border border-gray-300 rounded px-2 py-1 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-400 mb-1"
           >
             <option value="">— Root —</option>
             {folders.map((f) => (
               <option key={f.folderID} value={f.folderID}>{f.folderName}</option>
             ))}
           </select>
+          {/* Tag editing in edit mode */}
+          <RowTagChips fileID={file.FileID} editing={true} isAdmin={isAdmin} />
         </td>
 
-        {/* Type-specific metadata inputs */}
+        {/* Metadata inputs */}
         <td className="py-2 pr-3 hidden sm:table-cell">
           {isPaper ? (
             <div className="grid grid-cols-2 gap-1">
@@ -232,12 +432,10 @@ function FileRow({ file, checked, onCheck, isStaff, folders, onRefresh, onError 
           )}
         </td>
 
-        {/* Upload date — static while editing */}
         <td className="py-2 pr-3 hidden md:table-cell">
           <span className="text-xs text-gray-400 whitespace-nowrap">{fmt(file.DateUploaded)}</span>
         </td>
 
-        {/* Save / Cancel */}
         <td className="py-2 pr-3">
           <div className="flex items-center gap-1">
             <button
@@ -267,7 +465,6 @@ function FileRow({ file, checked, onCheck, isStaff, folders, onRefresh, onError 
         ${isDeleted ? "bg-red-50/50" : "hover:bg-gray-50/80"}
         ${isStaff && !isDeleted ? "cursor-pointer" : ""}`}
     >
-      {/* Checkbox */}
       <td className="pl-3 pr-2 py-2.5 w-8" onClick={(e) => e.stopPropagation()}>
         <input
           type="checkbox"
@@ -279,7 +476,6 @@ function FileRow({ file, checked, onCheck, isStaff, folders, onRefresh, onError 
 
       {thumbCell}
 
-      {/* Type + deleted badges */}
       <td className="py-2 pr-2 w-24">
         <div className="flex flex-col gap-0.5">
           <Badge label={file.FileType} colour={isPaper ? "blue" : "yellow"} />
@@ -287,37 +483,34 @@ function FileRow({ file, checked, onCheck, isStaff, folders, onRefresh, onError 
         </div>
       </td>
 
-      {/* Title + folder breadcrumb */}
+      {/* Name + tags */}
       <td className="py-2 pr-3 min-w-0">
         <p className="text-sm font-medium text-gray-800 truncate leading-snug">{title}</p>
         {file.folderName && (
           <p className="text-[11px] text-gray-400 truncate">{file.folderName}</p>
         )}
+        <RowTagChips fileID={file.FileID} editing={false} isAdmin={isAdmin} />
       </td>
 
-      {/* Metadata detail */}
       <td className="py-2 pr-3 hidden sm:table-cell">
         <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
           {detail || <span className="text-gray-300 italic">No metadata</span>}
         </p>
       </td>
 
-      {/* Upload date */}
       <td className="py-2 pr-3 hidden md:table-cell">
         <span className="text-xs text-gray-400 whitespace-nowrap">{fmt(file.DateUploaded)}</span>
       </td>
 
-      {/* Actions */}
       <td className="py-2 pr-3" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-1 flex-wrap">
-          <a
-            href={getDownloadUrl(file.FileID)}
-            target="_blank"
-            rel="noreferrer"
+          {/* View → opens preview modal */}
+          <button
+            onClick={() => onPreview(file)}
             className="px-2 py-0.5 text-xs bg-blue-50 text-blue-700 rounded hover:bg-blue-100 whitespace-nowrap"
           >
             View
-          </a>
+          </button>
           <a
             href={getForceDownloadUrl(file.FileID)}
             download
@@ -360,10 +553,11 @@ function FileRow({ file, checked, onCheck, isStaff, folders, onRefresh, onError 
 }
 
 // ─── List root ────────────────────────────────────────────────────────────────
-export default function FileList({ files, folders, isStaff, showDeleted, onRefresh }) {
-  const [selected,  setSelected]  = useState(new Set());
-  const [globalErr, setGlobalErr] = useState("");
-  const [bulkBusy,  setBulkBusy]  = useState(false);
+export default function FileList({ files, folders, isStaff, isAdmin, showDeleted, onRefresh }) {
+  const [selected,    setSelected]    = useState(new Set());
+  const [globalErr,   setGlobalErr]   = useState("");
+  const [bulkBusy,    setBulkBusy]    = useState(false);
+  const [previewFile, setPreviewFile] = useState(null);
 
   function toggleOne(id, checked) {
     setSelected((prev) => {
@@ -486,10 +680,10 @@ export default function FileList({ files, folders, isStaff, showDeleted, onRefre
               </th>
               <th className="pr-2 py-2.5 w-12" />
               <th className="py-2.5 pr-2 text-left w-24">Type</th>
-              <th className="py-2.5 pr-3 text-left">Name</th>
+              <th className="py-2.5 pr-3 text-left">Name &amp; Tags</th>
               <th className="py-2.5 pr-3 text-left hidden sm:table-cell">Details</th>
               <th className="py-2.5 pr-3 text-left hidden md:table-cell w-28">Uploaded</th>
-              <th className="py-2.5 pr-3 text-left w-44">Actions</th>
+              <th className="py-2.5 pr-3 text-left w-40">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -500,15 +694,28 @@ export default function FileList({ files, folders, isStaff, showDeleted, onRefre
                 checked={selected.has(file.FileID)}
                 onCheck={toggleOne}
                 isStaff={isStaff}
+                isAdmin={isAdmin}
                 showDeleted={showDeleted}
                 folders={folders}
                 onRefresh={onRefresh}
                 onError={setGlobalErr}
+                onPreview={setPreviewFile}
               />
             ))}
           </tbody>
         </table>
       </div>
+
+      {/* File preview modal */}
+      {previewFile && (
+        <FilePreviewModal
+          file={previewFile}
+          isStaff={isStaff}
+          isAdmin={isAdmin}
+          onClose={() => setPreviewFile(null)}
+          onRefresh={onRefresh}
+        />
+      )}
     </div>
   );
 }

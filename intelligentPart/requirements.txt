@@ -1,0 +1,28 @@
+mysql-connector-python
+chromadb
+google-genai
+python-dotenv
+Pillow
+numpy
+
+# Face recognition — downloads Facenet512 weights (~100 MB) on first run:
+deepface
+
+# Uncomment when Tesseract is installed on the system:
+pytesseract
+# what does this do? It is a Python wrapper for Google's Tesseract-OCR Engine, which allows you to perform optical character recognition (OCR) on images. It can be used to extract text from images, such as scanned documents or photos of text.
+pdf2image
+# what does this do? It is a Python library that converts PDF files into images. It uses the Poppler library to render PDF pages as images, which can then be processed or analyzed using other libraries, such as OCR tools or image processing libraries. This is particularly useful for extracting text from PDFs that contain scanned images of text, as it allows you to convert the PDF pages into a format that can be easily processed by OCR tools like pytesseract.
+
+# Uncomment when ready for local CLIP embeddings:
+open-clip-torch
+# What does this do? It is a Python library that provides an implementation of the CLIP (Contrastive Language-Image Pretraining) model developed by OpenAI. CLIP is a powerful model that can understand and relate images and text, allowing for tasks such as image classification, image captioning, and zero-shot learning. The open-clip-torch library allows you to use the CLIP model in your Python projects, enabling you to perform various tasks that involve understanding the relationship between images and text.
+torch
+# What does this do? It is an open-source machine learning library developed by Facebook's AI Research lab (FAIR). It provides a flexible and efficient platform for building and training deep learning models. PyTorch offers dynamic computation graphs, which allow for more intuitive and easier debugging compared to static computation graphs used in other frameworks. It supports a wide range of applications, including computer vision, natural language processing, and reinforcement learning. PyTorch also has a strong community and extensive documentation, making it a popular choice among researchers and developers in the field of artificial intelligence.
+torchvision
+# What does this do? It is a library that is part of the PyTorch ecosystem and provides tools for computer vision tasks. It includes datasets, model architectures, and image transformations that are commonly used in computer vision applications. torchvision makes it easier to work with image data and build deep learning models for tasks such as image classification, object detection, and segmentation. It also provides pre-trained models that can be fine-tuned for specific tasks, making it a valuable resource for researchers and developers working on computer vision projects.
+
+# Uncomment when ready for Surya OCR:
+surya-ocr
+# What does this do? It is a Python library that provides an OCR (Optical Character Recognition) solution for extracting text from images. Surya OCR is designed to be efficient and accurate, making it suitable for various applications such as document scanning, image processing, and data extraction. It can be used to recognize text in different languages and supports various image formats. By using Surya OCR, you can automate the process of extracting text from images, which can be particularly useful for tasks like digitizing documents or analyzing visual data.
+

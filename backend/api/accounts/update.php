@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-require_once __DIR__ . '/../../utils/auth.php';   // starts session, sets $currentUserID
+require_once __DIR__ . '/../../utils/auth.php';   // starts session sets $currentUserID
 
 $conn = new mysqli("localhost", "root", "", "las_db");
 if ($conn->connect_error) {
@@ -34,7 +34,7 @@ if ($conn->connect_error) {
     exit();
 }
 
-// ── GET: fetch current user data ──────────────────────────────────────────────
+// ── GET: fetch current user data 
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     // TODO: Add fullname into teh table soon
@@ -141,6 +141,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $sql    = "UPDATE account SET " . implode(", ", $fields) . " WHERE UserID = ?";
     $params[] = $currentUserID;
     $types   .= "i";
+    // The final query lookw like: 
+    // UPDATE account SET Username = ?, Email = ?, PassHash = ? WHERE UserID = ? (with only the fields that were provided)
 
     $stmt = $conn->prepare($sql);
     $stmt->bind_param($types, ...$params);

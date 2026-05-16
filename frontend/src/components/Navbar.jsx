@@ -2,8 +2,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { logout } from "../api/auth";
 
 export default function Navbar() {
-  const navigate = useNavigate();
-  const isAdmin = localStorage.getItem("las_role") === "1";
+  const navigate  = useNavigate();
+  const roleID    = Number(localStorage.getItem("las_role"));
+  const isAdmin   = roleID === 1;
+  const isStaff   = roleID === 3;
+  const canManage = isAdmin || isStaff;
 
   async function handleLogout() {
     await logout();
@@ -13,21 +16,21 @@ export default function Navbar() {
 
   return (
     <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-      <Link to="/browse" className="text-lg font-semibold text-gray-800">
-        LAS
+      <Link to="/browse">
+        <img src="/favicon_3.png" alt="LAS" className="h-8 w-auto" />
       </Link>
       <div className="flex gap-4 text-sm items-center">
-        <Link to="/" className="text-gray-600 hover:text-gray-900">Home</Link>
+        <Link to="/"       className="text-gray-600 hover:text-gray-900">Home</Link>
         <Link to="/browse" className="text-gray-600 hover:text-gray-900">Browse</Link>
         <Link to="/upload" className="text-gray-600 hover:text-gray-900">Upload</Link>
         <Link to="/account" className="text-gray-600 hover:text-gray-900">Account</Link>
-        {isAdmin && (
-          <Link
-            to="/admin/users"
-            className="text-purple-600 hover:text-purple-800 font-medium"
-          >
-            Admin
-          </Link>
+        {canManage && (
+          <>
+            <Link to="/admin/users"    className="text-purple-600 hover:text-purple-800 font-medium">Users</Link>
+            {isAdmin && (
+              <Link to="/admin/activity" className="text-purple-600 hover:text-purple-800 font-medium">Logs</Link>
+            )}
+          </>
         )}
         <button
           onClick={handleLogout}

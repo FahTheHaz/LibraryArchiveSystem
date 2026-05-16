@@ -102,7 +102,7 @@ if ($action === 'restore') {
         echo json_encode(["error" => "Failed to restore file."]);
     }
 
-    logActivity($conn, $userID, "FILE_RESTORE", "File restored: {$fileID}");
+    logActivity($conn, $userID, "FILE_RESTORE", "File restored: {$fileID}", $fileID);
 
     $stmt->close();
     $conn->commit();
@@ -128,7 +128,7 @@ if ($action === 'restore') {
         echo json_encode(["error" => "Failed to delete file."]);
     }
     // TODO: log activity (who deleted what file and when) for audit purposes
-    logActivity($conn, $userID, "FILE_DELETE", "File deleted: {$fileID}");
+    logActivity($conn, $userID, "FILE_DELETE", "File deleted: {$fileID}", $fileID);
     $stmt->close();
     $conn->commit();
 } else{

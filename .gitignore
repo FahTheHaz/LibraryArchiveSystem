@@ -9,4 +9,6 @@ trash/
 Tests/
 Tests/
 database/
+make_hash.php
+.env
 

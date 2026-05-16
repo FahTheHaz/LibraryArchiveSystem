@@ -129,7 +129,7 @@ $mimeMap = [
 $contentType = $mimeMap[$ext] ?? 'application/octet-stream';
 
 // ─── Log Before Serving ───────────────────────────────────────────────────────
-logActivity($conn, $currentUserID, "DOWNLOAD", "Downloaded FileID: {$fileID} ({$file['FileType']})");
+logActivity($conn, $currentUserID, "DOWNLOAD", "Downloaded FileID: {$fileID} ({$file['FileType']})", $fileID);
 $conn->close();
 
 // ─── Stream the File ──────────────────────────────────────────────────────────

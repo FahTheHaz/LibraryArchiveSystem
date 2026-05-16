@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-// ─── DB Connection ────────────────────────────────────────────────────────────
+// ─── DB Connection 
 $conn = new mysqli("localhost", "root", "", "las_db");
 if ($conn->connect_error) {
     http_response_code(500);
@@ -44,7 +44,7 @@ if ($conn->connect_error) {
 
 require_once __DIR__ . '/../../utils/logActivity.php';
 
-// ─── Parse & Validate ─────────────────────────────────────────────────────────
+// ─── Parse & Validate 
 $body            = json_decode(file_get_contents("php://input"), true);
 $token           = isset($body['token'])           ? trim($body['token'])   : '';
 $newPassword     = $body['password']               ?? '';
@@ -68,7 +68,7 @@ if (strlen($newPassword) < 8) {
     exit();
 }
 
-// ─── Validate Token ───────────────────────────────────────────────────────────
+// ─── Validate Token 
 $stmt = $conn->prepare(
     "SELECT ResetID, UserID
      FROM password_resets
@@ -88,7 +88,7 @@ if (!$row) {
 $userID  = (int) $row['UserID'];
 $resetID = (int) $row['ResetID'];
 
-// ─── Update Password & Mark Token Used ───────────────────────────────────────
+// ─── Update Password & Mark Token Used 
 $conn->begin_transaction();
 
 try {

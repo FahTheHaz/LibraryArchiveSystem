@@ -124,7 +124,7 @@ function EditForm({ file, folders, onDone, onError }) {
 }
 
 // ─── Single file card ─────────────────────────────────────────────────────────
-function FileCard({ file, checked, onCheck, isStaff, showDeleted, folders, onRefresh, onError }) {
+function FileCard({ file, checked, onCheck, isStaff, folders, onRefresh, onError }) {
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const isPaper = file.FileType === "PAPER";
@@ -156,7 +156,7 @@ function FileCard({ file, checked, onCheck, isStaff, showDeleted, folders, onRef
   const thumbUrl = !isPaper ? getDownloadUrl(file.FileID) : null;
 
   return (
-    <div className={`relative bg-white rounded-xl border shadow-sm flex flex-col overflow-hidden
+    <div className={`relative bg-white rounded-xl border flex flex-col overflow-hidden
       ${isDeleted ? "opacity-60 border-red-300" : "border-gray-200"}`}>
 
       {/* Checkbox */}

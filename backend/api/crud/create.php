@@ -204,6 +204,14 @@ try {
         $metaStmt->close();
     }
 
+    // ─── Queue for AI Processing ───
+    $qStmt = $conn->prepare(
+        "INSERT INTO ProcessingQueue (FileID, Status, TargetMethod) VALUES (?, 'pending', 'local')"
+    );
+    $qStmt->bind_param("i", $fileID);
+    $qStmt->execute();
+    $qStmt->close();
+
     // ─── Log the Activity ───
     // In a real application, you would get the user's IP from the request and log it properly. For now, we'll just use a placeholder.
     // 
@@ -221,7 +229,7 @@ try {
     // $logStmt->execute();
     // $logStmt->close();
     require_once __DIR__ . '/../../utils/logActivity.php';
-    logActivity($conn, $uploadedBy, "UPLOAD", "Uploaded {$fileType}: {$originalName}");
+    logActivity($conn, $uploadedBy, "UPLOAD", "Uploaded {$fileType}: {$originalName}", $fileID);
     
     
 

@@ -7,4 +7,9 @@ git push
 
 After every whatever in Cmd
 
-Add "FullName?"
+Skip CAPTCHA: comment out lines 145–173 (the if ($captchaToken === '') block + the cURL block)
+Skip email: comment out the $mailSent = sendMail(...) line and the if (!$mailSent) block after it
+
+To test without CAPTCHA - in registration.php comment out lines 75–103 (from $captchaToken = $body['captchaToken']... through the closing exit(); of the cURL block).
+
+To test without email — comment out the $mailSent = sendMail(...) line near the bottom.

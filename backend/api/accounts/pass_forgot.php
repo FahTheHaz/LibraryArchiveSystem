@@ -55,7 +55,7 @@ if ($conn->connect_error) {
 require_once __DIR__ . '/../../utils/logActivity.php';
 require_once __DIR__ . '/../../utils/mailer.php';
 
-// ─── Parse & Validate ─────────────────────────────────────────────────────────
+// ─── Parse & Validate 
 $body  = json_decode(file_get_contents("php://input"), true);
 $email = isset($body['email']) ? trim($body['email']) : '';
 
@@ -71,14 +71,14 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     exit();
 }
 
-// ─── Look Up Account ──────────────────────────────────────────────────────────
+// ─── Look Up Account 
 $stmt = $conn->prepare("SELECT UserID, FullName FROM account WHERE Email = ? LIMIT 1");
 $stmt->bind_param("s", $email);
 $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-// Always return the same 200 regardless — prevents email enumeration
+// Always return 200 prevent email enumeration
 if (!$user) {
     http_response_code(200);
     echo json_encode(["message" => "If that email exists, a reset link has been sent."]);
@@ -89,15 +89,17 @@ if (!$user) {
 $userID   = (int) $user['UserID'];
 $fullName = $user['FullName'];
 
-// ─── Generate Token ───────────────────────────────────────────────────────────
+// ─── Generate Token 
 // Generate BEFORE the prepare so $token is populated when bind_param runs
 $token = bin2hex(random_bytes(32)); // 64-char hex token, expires in 1 hour
+// for password reset link
 
-$stmt = $conn->prepare(
+$stmt = $conn->prepare( 
     "INSERT INTO password_resets (UserID, Token, ExpiresAt)
      VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))
      ON DUPLICATE KEY UPDATE Token = VALUES(Token), ExpiresAt = VALUES(ExpiresAt), UsedAt = NULL"
 );
+// Put in db
 $stmt->bind_param("is", $userID, $token);
 
 if (!$stmt->execute()) {
@@ -111,10 +113,10 @@ if (!$stmt->execute()) {
 }
 $stmt->close();
 
-// ─── Send Reset Email ─────────────────────────────────────────────────────────
+// ─── Send Reset Email 
 $resetLink = "http://localhost:5173/reset-password?token={$token}";
 // TODO: Replace localhost:5173 with production URL when deploying.
-
+// TODO: make this lovelier
 $emailBody = "
 <p>Hi {$fullName},</p>
 <p>We received a request to reset your LAS account password.</p>

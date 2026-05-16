@@ -15,6 +15,7 @@ export default function BrowsePage() {
   const navigate = useNavigate();
   const roleID   = useRole();
   const isStaff  = roleID === 1 || roleID === 3;
+  const isAdmin  = roleID === 1;
 
   // ─── State ──────────────────────────────────────────────────────────────────
   const [folders,    setFolders]    = useState([]);
@@ -176,7 +177,7 @@ export default function BrowsePage() {
               <button
                 onClick={() => setViewMode("grid")}
                 title="Grid view"
-                className={`p-1.5 rounded-md transition ${viewMode === "grid" ? "bg-white shadow text-blue-600" : "text-gray-400 hover:text-gray-600"}`}
+                className={`p-1.5 rounded-md transition ${viewMode === "grid" ? "bg-white text-blue-600 border border-gray-200" : "text-gray-400 hover:text-gray-600"}`}
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -186,7 +187,7 @@ export default function BrowsePage() {
                 onClick={() => setViewMode("list")}
                 // List veiw for simplicity
                 title="List view"
-                className={`p-1.5 rounded-md transition ${viewMode === "list" ? "bg-white shadow text-blue-600" : "text-gray-400 hover:text-gray-600"}`}
+                className={`p-1.5 rounded-md transition ${viewMode === "list" ? "bg-white text-blue-600 border border-gray-200" : "text-gray-400 hover:text-gray-600"}`}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -210,6 +211,7 @@ export default function BrowsePage() {
                     files={files}
                     folders={folders}
                     isStaff={isStaff}
+                    isAdmin={isAdmin}
                     showDeleted={showDeleted}
                     onRefresh={loadFiles}
                   />
@@ -247,7 +249,7 @@ export default function BrowsePage() {
       {isStaff && (
         <button
           onClick={() => setShowUpload(true)}
-          className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-xl flex items-center justify-center transition"
+          className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition"
           title="Bulk upload"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">

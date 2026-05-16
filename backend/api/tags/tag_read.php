@@ -69,7 +69,7 @@ if ($fileID !== null) {
     $fileCheck->close();
 
     $stmt = $conn->prepare(
-        "SELECT t.TagID, t.TagContent, t.Helpfulness
+        "SELECT t.TagID, t.TagContent, t.Helpfulness, t.Source
          FROM tags t
          INNER JOIN filetags ft ON t.TagID = ft.TagID
          WHERE ft.FileID = ?

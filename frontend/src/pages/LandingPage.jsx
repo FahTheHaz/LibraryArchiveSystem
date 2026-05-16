@@ -14,14 +14,22 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div
+      className="min-h-screen flex flex-col"
+      style={{
+        backgroundImage: 'url("/Gemini_Generated_Image_m7f2d6m7f2d6m7f2.png")',
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
 
       {/* ── Top bar ── */}
       {isLoggedIn ? (
         <Navbar />
       ) : (
         <header className="absolute top-0 left-0 right-0 z-20 px-8 py-4 flex items-center justify-between">
-          <span className="text-xl font-bold text-white drop-shadow tracking-tight">LAS</span>
+          <span className="text-xl font-bold text-white tracking-tight">LAS</span>
           <div className="flex gap-3">
             <Link
               to="/login"
@@ -40,37 +48,35 @@ export default function LandingPage() {
       )}
 
       {/* ── Hero ── */}
-      <section className="relative h-[520px] overflow-hidden shrink-0">
-        {/* Placeholder background image */}
-        <img
-          src="https://placehold.co/1920x520/1e3a5f/ffffff?text=Hero+Background"
-          
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+      <section
+        className="relative h-[520px] overflow-hidden shrink-0 bg-cover bg-center"
+        style={{
+          backgroundImage: 'url("/Gemini_Generated_Image_m7f2d6m7f2d6m7f2.png")',
+        }}
+      >
         {/* Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
 
         {/* Hero content */}
         <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
           <span className="inline-block mb-4 px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold rounded-full uppercase tracking-widest border border-white/30">
-            Library Archive System
+            Arkiba
           </span>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight mb-4 drop-shadow-lg">
-            Your school's archive,
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight mb-4">
+            ITQSHHB's Library,
             <br />
-            <span className="text-blue-300">all in one place.</span>
+            <span className="text-blue-300">Exam papers and ITQSHHB event archive.</span>
           </h1>
           <p className="text-white/80 text-lg max-w-xl mb-8 leading-relaxed">
-            Browse past exam papers, event photographs, and academic resources —
+            Browse past exam papers, event photographs, and academic resources
             a centralised archive for students and staff.
           </p>
           <div className="flex items-center gap-4">
             <Link
               to="/register"
-              className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors text-sm shadow-lg"
+              className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors text-sm"
             >
-              Get started
+              Create account
             </Link>
             <Link
               to="/login"
@@ -84,14 +90,18 @@ export default function LandingPage() {
 
       {/* ── Two-panel section ── */}
       <section className="flex-1 bg-gray-50 px-6 py-12">
+        {/*  */}
+
         <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6">
 
           {/* Panel 1 — Chat / Search */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col">
             {/* Panel placeholder image */}
             <div className="h-48 overflow-hidden shrink-0">
               <img
-                src="https://placehold.co/800x192/e0f2fe/0369a1?text=Search+%2F+Chat"
+                // src="https://placehold.co/800x192/e0f2fe/0369a1?text=Search+%2F+Chat"
+                // "C:\xampp\htdocs\LAS\frontend\public\Browse_1.png"
+                src="/Browse_1.png"
                 alt=""
                 className="w-full h-full object-cover"
               />
@@ -106,7 +116,7 @@ export default function LandingPage() {
                 <h2 className="text-lg font-semibold text-gray-800">Search the Archive</h2>
               </div>
               <p className="text-sm text-gray-500 mb-4 leading-relaxed">
-                Ask a question or search for exam papers, photos, and more. Chat and AI-assisted search coming soon.
+                Ask a question or search for exam papers, photos, and more.<br></br>(Chat and AI-assisted search coming soon).
               </p>
 
               <form onSubmit={handleSearch} className="flex gap-2 mt-auto">
@@ -114,7 +124,7 @@ export default function LandingPage() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search papers, photos, events…"
+                  placeholder="Search papers, photos, events…" 
                   className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
                 <button
@@ -134,12 +144,15 @@ export default function LandingPage() {
           {/* Panel 2 — Browse */}
           <Link
             to="/browse"
-            className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col group hover:shadow-md hover:border-blue-200 transition-all"
+            className="bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col group hover:border-blue-200 transition-all"
           >
             {/* Panel placeholder image */}
             <div className="h-48 overflow-hidden shrink-0">
               <img
-                src="https://placehold.co/800x192/ede9fe/6d28d9?text=Browse+Files"
+                // src="https://placehold.co/800x192/ede9fe/6d28d9?text=Brow Here"
+                src="/browse_2.png"
+                // "C:\xampp\htdocs\LAS\frontend\public\browse_2.png"
+
                 alt=""
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
@@ -177,3 +190,6 @@ export default function LandingPage() {
     </div>
   );
 }
+
+// "C:\xampp\htdocs\LAS\frontend\dist\assets\favicon_3.png"
+// 

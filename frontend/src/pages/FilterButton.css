@@ -7,7 +7,6 @@
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   padding: 14px 16px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
   min-width: 200px;
 }
 
@@ -20,7 +19,6 @@
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   padding: 4px 0;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
   min-width: 160px;
   overflow: hidden;
 }

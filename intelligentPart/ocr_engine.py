@@ -1,0 +1,27 @@
+"""
+ocr_engine.py — Tesseract OCR for LAS
+Extracts text from images and PDFs.
+
+Requires:
+  pip install pytesseract pdf2image pillow
+  Tesseract binary: https://github.com/UB-Mannheim/tesseract/wiki
+  Poppler (for PDFs): https://github.com/oschwartz10612/poppler-windows/releases
+Falls back to empty string if not installed.
+"""
+
+from pathlib import Path
+
+
+def run_ocr(file_path: Path) -> str:
+    """Tesseract OCR — extracts text from images and PDFs."""
+    try:
+        import pytesseract
+        from pdf2image import convert_from_path
+        pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+        if file_path.suffix.lower() == '.pdf':
+            pages = convert_from_path(str(file_path))
+            return "\n".join(pytesseract.image_to_string(p) for p in pages)
+        return pytesseract.image_to_string(str(file_path))
+    except ImportError:
+        print(f"  [OCR not installed] {file_path.name} → empty string")
+        return ""
