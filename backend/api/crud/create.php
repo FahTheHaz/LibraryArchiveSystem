@@ -205,10 +205,11 @@ try {
     }
 
     // ─── Queue for AI Processing ───
+    $targetMethod = isset($_POST['targetMethod']) && $_POST['targetMethod'] === 'cloud' ? 'cloud' : 'local';
     $qStmt = $conn->prepare(
-        "INSERT INTO ProcessingQueue (FileID, Status, TargetMethod) VALUES (?, 'pending', 'local')"
+        "INSERT INTO ProcessingQueue (FileID, Status, TargetMethod) VALUES (?, 'pending', ?)"
     );
-    $qStmt->bind_param("i", $fileID);
+    $qStmt->bind_param("is", $fileID, $targetMethod);
     $qStmt->execute();
     $qStmt->close();
 

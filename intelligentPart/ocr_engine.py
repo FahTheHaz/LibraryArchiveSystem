@@ -19,9 +19,8 @@ def run_ocr(file_path: Path) -> str:
         from pdf2image import convert_from_path
         pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
         if file_path.suffix.lower() == '.pdf':
-            pages = convert_from_path(str(file_path))
+            pages = convert_from_path(str(file_path), poppler_path=r'C:\Program Files\poppler-26.02.0\Library\bin')
             return "\n".join(pytesseract.image_to_string(p) for p in pages)
         return pytesseract.image_to_string(str(file_path))
     except ImportError:
-        print(f"  [OCR not installed] {file_path.name} → empty string")
         return ""

@@ -25,12 +25,12 @@ PROTOTYPE_MIN_SAMPLES = int(os.getenv("PROTOTYPE_MIN_SAMPLES", "3"))
 # Hardcoded zero-shot fallback — active only while no Room_label prototypes exist.
 # Once users confirm enough photos per room, these text prompts are superseded.
 PLACE_LABELS_FALLBACK: dict[str, str] = {
-    "room_101":    "a classroom with rows of desks and a chalkboard",
-    "science_lab": "a science laboratory with benches and equipment",
-    "sports_hall": "a sports hall or gymnasium with a wooden floor",
-    "library":     "a library with bookshelves and reading tables",
-    "main_hall":   "a large school hall or auditorium with a stage",
-    "canteen":     "a school canteen or cafeteria with long tables",
+    "library":    "I place in a library with bookshelves, reading tables, window seats",
+    "Musolla": "An islamic prayer room with carpets",
+    "Computer Lab": "A computer lab with rows of desks and computers",
+    "Lobby":     "Lobby or reception area with seating and a front desk",
+    "Main_theater":   "a large school theater or auditorium with a stage and tiered seating",
+    "canteen":     "a school canteen or cafeteria with lots of tables",
 }
 
 
@@ -111,7 +111,7 @@ def classify_place(image_path: Path) -> list[tuple[str, float]]:
     norm    = np.linalg.norm(img_vec)
 
     prototypes = load_place_prototypes()
-    if prototypes and norm > 1e-6:
+    if prototypes and norm > 1e-6: # 1e-6 is arbitrary threshold to avoid classifying near-zero vectors (e.g. CLIP fallback)
         results = [
             (key, float(np.dot(img_vec / norm, proto)))
             for key, proto in prototypes.items()
@@ -137,5 +137,5 @@ def classify_place(image_path: Path) -> list[tuple[str, float]]:
             scores = (img_feat @ txt_feat.T).softmax(dim=-1)[0].tolist()
         return sorted(zip(PLACE_LABELS_FALLBACK.keys(), scores), key=lambda x: -x[1])
     except ImportError:
-        print(f"  [classify_place] CLIP not installed — skipping place classification")
+        print(f"  [classify_place] 12 CLIP not installed — skipping place classification")
         return []

@@ -21,3 +21,16 @@ For implementation into NPM RUN DEV:
 
 
 
+        Student Survery
+        pros and cons
+        Kerja selidik/stuff
+        Security backup
+        generate user and shit - temp password - automise with gmail.
+
+        Name:
+        - Milaf - data
+        - Centralised - sothing
+        - Arkiba
+
+
+

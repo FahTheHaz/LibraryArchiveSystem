@@ -6,6 +6,7 @@ import { uploadFile } from "../api/files";
 export default function UploadPage() {
   const navigate = useNavigate();
   const [fileType, setFileType] = useState("PAPER");
+  const [targetMethod, setTargetMethod] = useState("local");
   const [file, setFile] = useState(null);
   const [fields, setFields] = useState({});
   const [status, setStatus] = useState(null);
@@ -22,6 +23,7 @@ export default function UploadPage() {
     const fd = new FormData();
     fd.append("file", file);
     fd.append("fileType", fileType);
+    fd.append("targetMethod", targetMethod);
     Object.entries(fields).forEach(([k, v]) => fd.append(k, v));
 
     setLoading(true);
@@ -66,6 +68,18 @@ export default function UploadPage() {
             >
               <option value="PAPER">Paper</option>
               <option value="PHOTO">Photo</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Processing Method</label>
+            <select
+              value={targetMethod}
+              onChange={(e) => setTargetMethod(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            >
+              <option value="local">Local (Fast — OCR + CLIP)</option>
+              <option value="cloud">Cloud (Deep Scan — Gemini AI)</option>
             </select>
           </div>
 

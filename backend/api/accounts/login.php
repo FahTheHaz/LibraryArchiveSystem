@@ -66,6 +66,8 @@ $username = trim($body['username']);
 $password = $body['password'];
 
 // ─── CAPTCHA — Cloudflare Turnstile ──────────────────────────────────────────
+// TEMPORARILY DISABLED FOR TESTING
+/*
 $captchaToken    = $body['captchaToken'] ?? '';
 $turnstileSecret = '1x0000000000000000000000000000000AA'; // TODO: replace with real secret key from env
 $clientIP        = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
@@ -97,6 +99,7 @@ if (!($turnstileData['success'] ?? false)) {
     echo json_encode(["error" => "CAPTCHA verification failed. Please try again."]);
     exit();
 }
+*/
 
 // ─── Fetch User 
 $stmt = $conn->prepare("SELECT UserID, PassHash, RoleID, IsVerified, Status FROM account WHERE Username = ?");

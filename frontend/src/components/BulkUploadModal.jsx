@@ -20,6 +20,7 @@ const PHOTO_FIELDS = [
 export default function BulkUploadModal({ folders, onClose, onDone }) {
   const [fileType, setFileType] = useState("PAPER");
   const [folderID, setFolderID] = useState("");
+  const [targetMethod, setTargetMethod] = useState("local");
   const [files, setFiles] = useState([]);
   const [meta, setMeta] = useState({});
   const [scanOrDigital, setScanOrDigital] = useState("");
@@ -63,6 +64,7 @@ export default function BulkUploadModal({ folders, onClose, onDone }) {
 
     const fd = new FormData();
     fd.append("fileType", fileType);
+    fd.append("targetMethod", targetMethod);
     if (folderID) fd.append("folderID", folderID);
 
     files.forEach((f) => fd.append("files[]", f));
@@ -100,7 +102,7 @@ export default function BulkUploadModal({ folders, onClose, onDone }) {
         </div>
 
         <div className="overflow-y-auto px-6 py-4 space-y-4 flex-1">
-          {/* Type + Folder */}
+          {/* Type + Folder + Method */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">File Type</label>
@@ -126,6 +128,17 @@ export default function BulkUploadModal({ folders, onClose, onDone }) {
                     {f.folderName} ({f.pathIDString})
                   </option>
                 ))}
+              </select>
+            </div>
+            <div className="col-span-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1">Processing Method</label>
+              <select
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                value={targetMethod}
+                onChange={(e) => setTargetMethod(e.target.value)}
+              >
+                <option value="local">Local (Fast — OCR + CLIP)</option>
+                <option value="cloud">Cloud (Deep Scan — Gemini AI)</option>
               </select>
             </div>
           </div>

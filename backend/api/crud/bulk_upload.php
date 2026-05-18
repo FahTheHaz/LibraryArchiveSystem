@@ -60,6 +60,7 @@ if (!in_array($fileType, ['PAPER', 'PHOTO'])) {
 }
 
 $folderID = isset($_POST['folderID']) && intval($_POST['folderID']) > 0 ? intval($_POST['folderID']) : null;
+$targetMethod = isset($_POST['targetMethod']) && $_POST['targetMethod'] === 'cloud' ? 'cloud' : 'local';
 
 // Shared metadata
 $sharedMeta = [];
@@ -211,9 +212,9 @@ foreach ($files as $idx => $f) {
         }
 
         $qStmt = $conn->prepare(
-            "INSERT INTO ProcessingQueue (FileID, Status, TargetMethod) VALUES (?, 'pending', 'local')"
+            "INSERT INTO ProcessingQueue (FileID, Status, TargetMethod) VALUES (?, 'pending', ?)"
         );
-        $qStmt->bind_param("i", $fileID);
+        $qStmt->bind_param("is", $fileID, $targetMethod);
         $qStmt->execute();
         $qStmt->close();
 

@@ -20,21 +20,21 @@ export default function Navbar() {
         <img src="/favicon_3.png" alt="LAS" className="h-8 w-auto" />
       </Link>
       <div className="flex gap-4 text-sm items-center">
-        <Link to="/"       className="text-gray-600 hover:text-gray-900">Home</Link>
-        <Link to="/browse" className="text-gray-600 hover:text-gray-900">Browse</Link>
-        <Link to="/upload" className="text-gray-600 hover:text-gray-900">Upload</Link>
-        <Link to="/account" className="text-gray-600 hover:text-gray-900">Account</Link>
+        <Link to="/"       className="border border-gray-300 rounded px-3 py-1 text-gray-600 hover:text-gray-900 hover:border-gray-400">Home</Link>
+        <Link to="/browse" className="border border-gray-300 rounded px-3 py-1 text-gray-600 hover:text-gray-900 hover:border-gray-400">Browse</Link>
+        <Link to="/upload" className="border border-gray-300 rounded px-3 py-1 text-gray-600 hover:text-gray-900 hover:border-gray-400">Upload</Link>
+        <Link to="/account" className="border border-gray-300 rounded px-3 py-1 text-gray-600 hover:text-gray-900 hover:border-gray-400">Account</Link>
         {canManage && (
           <>
-            <Link to="/admin/users"    className="text-purple-600 hover:text-purple-800 font-medium">Users</Link>
+            <Link to="/admin/users"    className="border border-purple-300 rounded px-3 py-1 text-purple-600 hover:text-purple-800 hover:border-purple-400 font-medium">Users</Link>
             {isAdmin && (
-              <Link to="/admin/activity" className="text-purple-600 hover:text-purple-800 font-medium">Logs</Link>
+              <Link to="/admin/activity" className="border border-purple-300 rounded px-3 py-1 text-purple-600 hover:text-purple-800 hover:border-purple-400 font-medium">Logs</Link>
             )}
           </>
         )}
         <button
           onClick={handleLogout}
-          className="text-red-500 hover:text-red-700"
+          className="border border-red-300 rounded px-3 py-1 text-red-500 hover:text-red-700 hover:border-red-400"
         >
           Logout
         </button>

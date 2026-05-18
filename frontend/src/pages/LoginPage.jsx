@@ -19,7 +19,8 @@ export default function LoginPage() {
     e.preventDefault();
     if (!captchaToken) {
       setError("Please complete the CAPTCHA.");
-      return;
+      // return;
+      // TODO: uncomment this later on...
     }
     setLoading(true);
     const { ok, data } = await login(form.username, form.password, captchaToken);

@@ -12,4 +12,7 @@ Skip email: comment out the $mailSent = sendMail(...) line and the if (!$mailSen
 
 To test without CAPTCHA - in registration.php comment out lines 75–103 (from $captchaToken = $body['captchaToken']... through the closing exit(); of the cURL block).
 
-To test without email — comment out the $mailSent = sendMail(...) line near the bottom.
+To test without email — comment out the $mailSent = sendMail(...) line near the bottom
+
+
+
