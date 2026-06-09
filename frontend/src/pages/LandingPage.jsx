@@ -32,16 +32,16 @@ export default function LandingPage() {
           <span className="text-xl font-bold text-white tracking-tight">LAS</span>
           <div className="flex gap-3">
             <Link
-              to="/login"
+              to="/register"
               className="px-4 py-2 text-sm font-medium text-white/90 hover:text-white transition-colors"
             >
-              Sign in
+              Register
             </Link>
             <Link
-              to="/register"
+              to="/login"
               className="px-4 py-2 text-sm font-medium bg-white text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
             >
-              Register
+              Admin Sign In
             </Link>
           </div>
         </header>
@@ -71,7 +71,13 @@ export default function LandingPage() {
             Browse past exam papers, event photographs, and academic resources
             a centralised archive for students and staff.
           </p>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Link
+              to="/browse"
+              className="px-6 py-3 bg-white text-gray-800 font-medium rounded-lg hover:bg-gray-100 transition-colors text-sm"
+            >
+              Browse as Guest
+            </Link>
             <Link
               to="/register"
               className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors text-sm"
@@ -82,7 +88,7 @@ export default function LandingPage() {
               to="/login"
               className="px-6 py-3 bg-white/10 backdrop-blur-sm border border-white/40 text-white font-medium rounded-lg hover:bg-white/20 transition-colors text-sm"
             >
-              Sign in
+              Admin / Staff Sign In
             </Link>
           </div>
         </div>
@@ -136,7 +142,7 @@ export default function LandingPage() {
               </form>
 
               <p className="text-[11px] text-gray-400 mt-2">
-                Sign in required to access search results.
+                Browse as a guest or <Link to="/register" className="underline hover:text-gray-600">create an account</Link> for full access.
               </p>
             </div>
           </div>

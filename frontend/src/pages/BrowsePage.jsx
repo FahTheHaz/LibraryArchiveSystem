@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import FolderTree from "../components/FolderTree";
 import FileGrid from "../components/FileGrid";
@@ -12,10 +12,10 @@ function useRole() {
 }
 
 export default function BrowsePage() {
-  const navigate = useNavigate();
-  const roleID   = useRole();
-  const isStaff  = roleID === 1 || roleID === 3;
-  const isAdmin  = roleID === 1;
+  const roleID     = useRole();
+  const isLoggedIn = !!localStorage.getItem("las_role");
+  const isStaff    = roleID === 1 || roleID === 3;
+  const isAdmin    = roleID === 1;
 
   // ─── State ──────────────────────────────────────────────────────────────────
   const [folders,    setFolders]    = useState([]);
@@ -40,8 +40,7 @@ export default function BrowsePage() {
   const loadFolders = useCallback(async () => {
     setFoldLoading(true);
     try {
-      const { ok, status, data } = await getFolders();
-      if (status === 401) { navigate("/login"); return; }
+      const { ok, data } = await getFolders();
       if (!ok) { setError(data?.error || "Failed to load folders."); return; }
       setFolders(data.folders ?? []);
     } catch (err) {
@@ -49,7 +48,7 @@ export default function BrowsePage() {
     } finally {
       setFoldLoading(false);
     }
-  }, [navigate]);
+  }, []);
 
   const loadFiles = useCallback(async () => {
     setLoading(true);
@@ -63,8 +62,7 @@ export default function BrowsePage() {
         if (deepSearch) params.folderPath = selectedFolder.pathIDString;
         else            params.folderID   = selectedFolder.folderID;
       }
-      const { ok, status, data } = await getFiles(params);
-      if (status === 401) { navigate("/login"); return; }
+      const { ok, data } = await getFiles(params);
       if (!ok) { setError(data?.error || "Failed to load files."); return; }
       setFiles(data.files ?? []);
       setPagination(data.pagination ?? { currentPage: 1, totalPages: 1, totalFiles: 0, limit: 20 });
@@ -73,7 +71,7 @@ export default function BrowsePage() {
     } finally {
       setLoading(false);
     }
-  }, [navigate, search, typeFilter, showDeleted, selectedFolder, deepSearch, page]);
+  }, [search, typeFilter, showDeleted, selectedFolder, deepSearch, page]);
 
   useEffect(() => { loadFolders(); }, [loadFolders]);
   useEffect(() => { setPage(1); }, [search, typeFilter, showDeleted, selectedFolder, deepSearch]);
@@ -109,7 +107,17 @@ export default function BrowsePage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
 
-      <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 64px)" }}>
+      {!isLoggedIn && (
+        <div className="bg-blue-50 border-b border-blue-200 px-6 py-2 flex items-center justify-between text-sm">
+          <span className="text-blue-700">You're browsing as a guest — downloads and uploads require an account.</span>
+          <div className="flex gap-3 shrink-0 ml-4">
+            <Link to="/register" className="font-medium text-blue-700 hover:text-blue-900 underline">Register</Link>
+            <Link to="/login"    className="font-medium text-blue-700 hover:text-blue-900 underline">Sign In</Link>
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-1 overflow-hidden" style={{ height: isLoggedIn ? "calc(100vh - 64px)" : "calc(100vh - 100px)" }}>
 
         {/* ── Sidebar ── */}
         <aside className="w-60 shrink-0 bg-white border-r border-gray-200 flex flex-col overflow-hidden">

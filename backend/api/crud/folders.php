@@ -26,7 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-require_once __DIR__ . '/../../utils/auth.php';
+require_once __DIR__ . '/../../utils/auth_guest.php';
+// GET is public (guests can browse folders); POST still requires Admin/Staff role (checked below)
 require_once __DIR__ . '/../../utils/logActivity.php';
 
 $conn = new mysqli("localhost", "root", "", "las_db");
