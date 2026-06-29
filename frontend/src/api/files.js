@@ -1,4 +1,4 @@
-const BASE = "http://localhost/LAS/backend/api/crud";
+import { CRUD_BASE as BASE } from "./config";
 
 // ─── Files ────────────────────────────────────────────────────────────────────
 

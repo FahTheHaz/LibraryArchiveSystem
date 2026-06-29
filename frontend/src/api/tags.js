@@ -1,4 +1,4 @@
-const BASE = "http://localhost/LAS/backend/api/tags";
+import { TAGS_BASE as BASE } from "./config";
 
 export async function getFileTags(fileID) {
   const res = await fetch(`${BASE}/tag_read.php?fileID=${fileID}`, {

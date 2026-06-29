@@ -1,4 +1,4 @@
-const BASE = "http://localhost/LAS/backend/api/accounts";
+import { ACCOUNTS_BASE as BASE } from "./config";
 
 export async function login(username, password, captchaToken) {
   const res = await fetch(`${BASE}/login.php`, {
