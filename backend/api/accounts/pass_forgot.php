@@ -72,7 +72,7 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 }
 
 // ─── Look Up Account 
-$stmt = $conn->prepare("SELECT UserID, FullName FROM account WHERE Email = ? LIMIT 1");
+$stmt = $conn->prepare("SELECT UserID FROM account WHERE Email = ? LIMIT 1");
 $stmt->bind_param("s", $email);
 $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
@@ -87,7 +87,7 @@ if (!$user) {
 }
 
 $userID   = (int) $user['UserID'];
-$fullName = $user['FullName'];
+$fullName = "User";
 
 // ─── Generate Token 
 // Generate BEFORE the prepare so $token is populated when bind_param runs

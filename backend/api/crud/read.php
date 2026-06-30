@@ -56,8 +56,8 @@ if ($conn->connect_error) {
 }
 
 // ─── Auth & Parameters ───
-require_once __DIR__ . '/../../utils/auth.php';
-// $currentUserID, $currentRoleID available; session already started
+require_once __DIR__ . '/../../utils/auth_guest.php';
+// $currentUserID (null for guests) and $currentRoleID (0 for guests) available
 
 $fileID       = isset($_GET['id'])            ? intval($_GET['id'])             : null;
 $fileType     = isset($_GET['type'])          ? strtoupper(trim($_GET['type'])) : null;

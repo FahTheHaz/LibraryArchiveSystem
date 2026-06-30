@@ -104,9 +104,9 @@ def process_item(db, queue_id: int, file_id: int, file_path: str,
         if file_type == "PHOTO" and abs_path.suffix.lower() in {
             ".jpg", ".jpeg", ".png", ".gif", ".webp", ".tiff"
         }:
-            faces = run_face_recognition(abs_path)
-            if faces:
-                print(f"  [Faces] FileID {file_id}: {len(faces)} face(s)")
+            # faces = run_face_recognition(abs_path)
+            # if faces:
+            #     print(f"  [Faces] FileID {file_id}: {len(faces)} face(s)")
 
             place_results = classify_place(abs_path)
             if place_results:

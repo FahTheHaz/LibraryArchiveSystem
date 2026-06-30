@@ -1,4 +1,4 @@
-const BASE = "http://localhost/LAS/backend/api/admin";
+import { ADMIN_BASE as BASE } from "./config";
 
 export async function getUsers(role) {
   const res = await fetch(`${BASE}/users.php?role=${role}`, { credentials: "include" });
